@@ -1,10 +1,16 @@
-# Push a tag equal to the version in manifest.json (e.g. `npm version 0.2.0 && git push --follow-tags`).
+# Triggered by `make release` / `make release-draft`.
 # The release carries exactly the files `versline obsidian install` downloads: main.js, manifest.json, styles.css.
+# Obsidian requires the tag to equal manifest.json's version (no "v" prefix).
 name: Release
 
 on:
-  push:
-    tags: ["*"]
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: 'Publish immediately. Unchecked = draft'
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -22,16 +28,21 @@ jobs:
       - run: npm run lint
       - run: npm test
       - run: npm run build
-      - name: Tag must match manifest.json
-        run: |
-          version=$(node -p "require('./manifest.json').version")
-          if [ "$version" != "${GITHUB_REF_NAME#v}" ]; then
-            echo "Tag $GITHUB_REF_NAME does not match manifest.json version $version" >&2
-            exit 1
-          fi
-      - name: Create release
+      - name: Determine version
+        run: echo "RELEASE_VERSION=$(node -p "require('./manifest.json').version")" >> "$GITHUB_ENV"
+      - name: Remove existing release and tag if exists
         env:
           GH_TOKEN: ${{ github.token }}
-        run: |
-          gh release create "$GITHUB_REF_NAME" --title "Versobs $GITHUB_REF_NAME" --generate-notes \
-            main.js manifest.json styles.css
+        run: gh release delete "$RELEASE_VERSION" --cleanup-tag --yes || true
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.RELEASE_VERSION }}
+          name: Versobs ${{ env.RELEASE_VERSION }}
+          draft: ${{ !inputs.publish }}
+          generate_release_notes: true
+          target_commitish: ${{ github.sha }}
+          files: |
+            main.js
+            manifest.json
+            styles.css
