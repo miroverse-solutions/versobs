@@ -43,8 +43,8 @@ bump:
 release: lint test
 	@test -z "$$(git status --porcelain)" || { echo "Working tree not clean: commit first"; exit 1; }
 	@test "$$(git rev-parse HEAD)" = "$$(git rev-parse @{u})" || { echo "Unpushed commits: git push first"; exit 1; }
-	gh workflow run release.yml -f publish=true
+	gh workflow run manual-release.yml -f publish=true
 	@echo "Started release $(VERSION). Watch with: gh run watch"
 
 release-draft: lint test
-	gh workflow run release.yml -f publish=false
+	gh workflow run manual-release.yml -f publish=false

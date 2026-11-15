@@ -1,7 +1,7 @@
 # Triggered by `make release` / `make release-draft`.
 # The release carries exactly the files `versline obsidian install` downloads: main.js, manifest.json, styles.css.
 # Obsidian requires the tag to equal manifest.json's version (no "v" prefix).
-name: Release
+name: Manual Release
 
 on:
   workflow_dispatch:
