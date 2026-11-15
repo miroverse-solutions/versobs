@@ -1,0 +1,27 @@
+{
+  "name": "versobs",
+  "version": "0.1.0",
+  "description": "Versline's AI tools inside Obsidian: transcription, translation, summaries, flashcards, qualitative coding, research writing, slides, Word/PDF export and Telegram archives.",
+  "main": "main.js",
+  "private": true,
+  "license": "MIT",
+  "author": "Miroverse Solutions",
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "build": "tsc --noEmit --skipLibCheck && node esbuild.config.mjs production",
+    "typecheck": "tsc --noEmit --skipLibCheck",
+    "lint": "eslint src",
+    "test": "vitest run",
+    "version": "node version-bump.mjs && git add manifest.json versions.json"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "esbuild": "^0.28.2",
+    "eslint": "^9.39.0",
+    "eslint-plugin-obsidianmd": "^0.6.0",
+    "obsidian": "^1.14.4",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.72.2",
+    "vitest": "^5.1.0"
+  }
+}

@@ -1,0 +1,10 @@
+{
+	"id": "versobs",
+	"name": "Versobs",
+	"version": "0.1.0",
+	"minAppVersion": "1.15.0",
+	"description": "Versline's AI tools in Obsidian: transcribe audio and video, translate, summarize, make flashcards, code interviews, write research findings, build slides, export to Word/PDF and archive Telegram channels. Requires Versline.",
+	"author": "Miroverse Solutions",
+	"authorUrl": "https://github.com/miroverse-solutions",
+	"isDesktopOnly": true
+}

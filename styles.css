@@ -1,0 +1,258 @@
+/* Versobs: uses Obsidian's CSS variables so it follows every theme (light/dark). */
+
+.versobs-rtl {
+	direction: rtl;
+	text-align: start;
+}
+
+.versobs-muted {
+	color: var(--text-muted);
+}
+
+.versobs-small {
+	font-size: var(--font-ui-smaller);
+}
+
+.versobs-wide-input {
+	width: min(28em, 100%);
+}
+
+/* forms */
+.versobs-form .setting-item-control {
+	flex-wrap: wrap;
+	gap: var(--size-4-2);
+}
+
+.versobs-form .versobs-textarea-setting textarea {
+	width: min(28em, 100%);
+	min-height: 6em;
+}
+
+.versobs-advanced {
+	margin-block: var(--size-4-3);
+}
+
+.versobs-advanced > summary {
+	cursor: pointer;
+	color: var(--text-muted);
+	padding-block: var(--size-4-2);
+}
+
+.versobs-chips {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--size-4-2);
+}
+
+.versobs-chip {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--size-2-2);
+	padding: var(--size-2-1) var(--size-4-2);
+	border: 1px solid var(--background-modifier-border);
+	border-radius: var(--radius-m);
+	cursor: pointer;
+}
+
+.versobs-path-list {
+	display: flex;
+	flex-direction: column;
+	gap: var(--size-2-2);
+	width: 100%;
+}
+
+.versobs-path-item {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--size-4-2);
+	padding: var(--size-2-1) var(--size-4-2);
+	background: var(--background-secondary);
+	border-radius: var(--radius-s);
+	font-size: var(--font-ui-small);
+	word-break: break-all;
+}
+
+.versobs-path-item button {
+	padding: 0 var(--size-4-1);
+	box-shadow: none;
+	background: transparent;
+}
+
+.versobs-command {
+	direction: ltr;
+	text-align: left;
+	user-select: all;
+	white-space: pre-wrap;
+	word-break: break-all;
+	padding: var(--size-4-2);
+	background: var(--background-secondary);
+	border-radius: var(--radius-s);
+}
+
+.versobs-error-box {
+	white-space: pre-wrap;
+	max-height: 12em;
+	overflow: auto;
+	color: var(--text-error);
+	font-size: var(--font-ui-smaller);
+}
+
+/* jobs panel */
+.versobs-jobs-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.versobs-jobs-header h4 {
+	margin: var(--size-4-2) 0;
+}
+
+.versobs-jobs-actions {
+	display: flex;
+	gap: var(--size-2-2);
+}
+
+.versobs-empty {
+	color: var(--text-muted);
+	padding: var(--size-4-4) 0;
+}
+
+.versobs-job {
+	border: 1px solid var(--background-modifier-border);
+	border-radius: var(--radius-m);
+	padding: var(--size-4-2) var(--size-4-3);
+	margin-bottom: var(--size-4-2);
+	background: var(--background-primary);
+}
+
+.versobs-job.is-error {
+	border-color: var(--background-modifier-error);
+}
+
+.versobs-job-head {
+	display: flex;
+	align-items: center;
+	gap: var(--size-4-2);
+}
+
+.versobs-job-icon {
+	display: inline-flex;
+	color: var(--text-muted);
+}
+
+.versobs-job.is-success .versobs-job-icon {
+	color: var(--color-green);
+}
+
+.versobs-job.is-error .versobs-job-icon {
+	color: var(--text-error);
+}
+
+.versobs-job.is-running .versobs-job-icon svg {
+	animation: versobs-spin 1.2s linear infinite;
+}
+
+.versobs-job-title {
+	flex: 1;
+	font-weight: var(--font-semibold);
+	cursor: pointer;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.versobs-job-time {
+	color: var(--text-faint);
+	font-size: var(--font-ui-smaller);
+	font-variant-numeric: tabular-nums;
+}
+
+.versobs-job-label,
+.versobs-job-cost {
+	color: var(--text-muted);
+	font-size: var(--font-ui-smaller);
+	margin-top: var(--size-2-2);
+}
+
+.versobs-job-error {
+	color: var(--text-error);
+	font-size: var(--font-ui-smaller);
+	margin-top: var(--size-2-2);
+	white-space: pre-wrap;
+}
+
+.versobs-job-outputs {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--size-2-2) var(--size-4-3);
+	margin-top: var(--size-2-3);
+	font-size: var(--font-ui-smaller);
+}
+
+.versobs-job-logs {
+	max-height: 16em;
+	overflow: auto;
+	white-space: pre-wrap;
+	font-size: var(--font-ui-smaller);
+	background: var(--background-secondary);
+	padding: var(--size-4-2);
+	border-radius: var(--radius-s);
+	margin-top: var(--size-4-2);
+}
+
+.versobs-indeterminate {
+	height: 4px;
+	margin-top: var(--size-2-3);
+	border-radius: 2px;
+	background: linear-gradient(90deg, transparent, var(--interactive-accent), transparent);
+	background-size: 40% 100%;
+	background-repeat: no-repeat;
+	animation: versobs-slide 1.4s ease-in-out infinite;
+}
+
+.versobs-icon-button {
+	padding: var(--size-2-1);
+}
+
+.versobs-status.is-warning {
+	color: var(--text-warning);
+}
+
+.versobs-status-icon {
+	display: inline-flex;
+	vertical-align: middle;
+}
+
+.versobs-status-icon svg {
+	width: var(--icon-xs);
+	height: var(--icon-xs);
+}
+
+.versobs-notice-link {
+	text-decoration: underline;
+	cursor: pointer;
+}
+
+@keyframes versobs-spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+@keyframes versobs-slide {
+	0% {
+		background-position: -40% 0;
+	}
+	100% {
+		background-position: 140% 0;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.versobs-job.is-running .versobs-job-icon svg,
+	.versobs-indeterminate {
+		animation: none;
+	}
+}
