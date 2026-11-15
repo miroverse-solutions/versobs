@@ -1,5 +1,11 @@
 .PHONY: help install dev test lint build version bump release release-draft
 
+# Integration tests need a Versline that has `bridge`; use the sibling dev checkout when present.
+DEV_VERSLINE := $(abspath ../versline/.venv/bin/versline)
+ifneq ($(wildcard $(DEV_VERSLINE)),)
+export VERSLINE_BIN ?= $(DEV_VERSLINE)
+endif
+
 VERSION := $(shell node -p "require('./manifest.json').version")
 
 help:

@@ -1,5 +1,6 @@
 // Runs the real `versline bridge` (no AI calls). Skipped when Versline is not installed.
 // Point VERSLINE_BIN at a specific executable, e.g. ../versline/.venv/bin/versline.
+import { spawnSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -8,7 +9,9 @@ import { type ClientOptions, call, fetchManifest, runTool } from "../src/bridge/
 import { locateVersline } from "../src/bridge/locator";
 import type { BridgeEvent } from "../src/bridge/protocol";
 
-const executable = process.env.VERSLINE_BIN || locateVersline();
+const found = process.env.VERSLINE_BIN || locateVersline();
+// An older Versline without the `bridge` command cannot run these tests: skip instead of failing.
+const executable = found && spawnSync(found, ["bridge", "--help"], { stdio: "ignore" }).status === 0 ? found : undefined;
 const scratch = mkdtempSync(join(tmpdir(), "versobs-test-"));
 const options: ClientOptions = {
 	executable: executable ?? "versline",
