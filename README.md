@@ -105,6 +105,6 @@ VERSLINE_BIN=../versline/.venv/bin/versline npm test   # against a development c
 
 To try it, symlink this folder into a test vault: `ln -s "$PWD" <vault>/.obsidian/plugins/versobs`.
 
-**Release:** `npm version 0.2.0` updates `manifest.json` and `versions.json`. Then `git push --follow-tags`. The Release workflow builds the plugin and publishes `main.js`, `manifest.json` and `styles.css`, which `versline obsidian install` downloads.
+**Release:** releases and CI are manual; pushing to `main` triggers nothing. `make bump V=0.2.0` updates `package.json`, `manifest.json` and `versions.json` and commits. Push, then run `make release` (or `make release-draft`). The Manual Release workflow builds the plugin, tags it with the manifest version and publishes `main.js`, `manifest.json` and `styles.css`, which `versline obsidian install` downloads.
 
 License: MIT · [Miroverse Solutions](https://github.com/miroverse-solutions)
