@@ -20,6 +20,8 @@ export interface FormOptions {
 export class SchemaFormModal extends Modal {
 	private values: Record<string, unknown>;
 	private submitted = false;
+	/** Commit text typed into list inputs but not yet added with Enter. */
+	private pending: Array<() => void> = [];
 
 	constructor(
 		app: App,
@@ -62,6 +64,7 @@ export class SchemaFormModal extends Modal {
 	}
 
 	private submit(): void {
+		for (const flush of this.pending) flush();
 		const values = coerce(this.options.spec, this.values);
 		const missing = missingRequired(this.options.spec, values);
 		if (missing.length) {
@@ -76,6 +79,7 @@ export class SchemaFormModal extends Modal {
 
 	override onClose(): void {
 		this.contentEl.empty();
+		this.pending = [];
 		if (!this.submitted) this.resolve(null);
 	}
 
@@ -196,13 +200,18 @@ export class SchemaFormModal extends Modal {
 		setting.addText((text) => {
 			text.setPlaceholder(t(kind === "folder" ? "form.addFolder" : "form.addFile"));
 			new PathSuggest(this.app, text.inputEl, kind, prop["x-accept"], add);
+			const commit = (): boolean => {
+				const value = text.getValue().trim();
+				if (!value) return false;
+				add(value);
+				text.setValue("");
+				return true;
+			};
+			// Text left in the box when Run is pressed counts too.
+			this.pending.push(commit);
 			text.inputEl.addEventListener("keydown", (evt) => {
 				// Links or absolute paths can be typed and added with Enter.
-				if (evt.key === "Enter" && text.getValue().trim()) {
-					evt.preventDefault();
-					add(text.getValue().trim());
-					text.setValue("");
-				}
+				if (evt.key === "Enter" && commit()) evt.preventDefault();
 			});
 		});
 	}
