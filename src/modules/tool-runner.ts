@@ -81,7 +81,7 @@ function registerCli(ctx: ModuleContext): void {
 				if (!spec) return `Unknown or unavailable tool: ${data.tool}`;
 				const source = data.file ? ctx.app.vault.getFileByPath(data.file) : null;
 				const values = { ...prefill(spec, source), ...(data.params ? (JSON.parse(data.params) as Record<string, unknown>) : {}) };
-				const result = await ctx.core.runTool({ tool: spec.name, values, skipForm: true, remember: false });
+				const result = await ctx.core.runTool({ tool: spec.name, values, skipForm: true, remember: false, retryable: false });
 				if (!result) return "Not started";
 				if (result.outcome.status !== "success") return `${result.outcome.status}: ${result.outcome.error?.message ?? ""}`;
 				return result.outcome.artifacts.map((a) => ctx.core.paths.toVault(a.path) ?? a.path).join("\n") || "Done";

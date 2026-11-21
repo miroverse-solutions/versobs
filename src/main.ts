@@ -6,6 +6,7 @@ import { VersobsSettingTab } from "./core/settings-tab";
 import { Versobs } from "./core/versobs";
 import { resolveLanguage, setLanguage, t } from "./i18n";
 import { type Job, JobManager } from "./jobs/job-manager";
+import { JobStore } from "./jobs/job-store";
 import { JOBS_VIEW, JobsView } from "./jobs/jobs-view";
 import { StatusBar } from "./jobs/status-bar";
 import { MODULES } from "./modules";
@@ -34,6 +35,7 @@ export default class VersobsPlugin extends Plugin {
 	core!: Versobs;
 	host!: ModuleHost;
 	private statusBar!: StatusBar;
+	private jobStore: JobStore | null = null;
 
 	override async onload(): Promise<void> {
 		this.settings = migrateSettings(await this.loadData());
@@ -60,7 +62,19 @@ export default class VersobsPlugin extends Plugin {
 		this.statusBar = new StatusBar(this.addStatusBarItem(), this.core, () => void this.openJobs());
 		this.registerEvent(bridge.on("change", () => this.statusBar.update()));
 		this.registerEvent(jobs.on("change", () => this.statusBar.update()));
-		this.registerEvent(jobs.on("finished", (...data: unknown[]) => this.notifyFinished(data[0] as Job)));
+		this.registerEvent(
+			jobs.on("finished", (...data: unknown[]) => {
+				const job = data[0] as Job;
+				this.notifyFinished(job);
+				if (job.detached && job.status === "success") void this.core.finishDetached(job);
+			}),
+		);
+
+		const pluginDir = this.manifest.dir ?? `${this.app.vault.configDir}/plugins/${this.manifest.id}`;
+		const store = new JobStore(this.app.vault.adapter, `${pluginDir}/jobs.json`, () => jobs.jobs, (tool) => bridge.tool(tool));
+		jobs.restore(await store.load());
+		this.jobStore = store;
+		this.registerEvent(jobs.on("change", () => store.schedule()));
 
 		this.addRibbonIcon("audio-waveform", t("ribbon.jobs"), () => void this.openJobs());
 		this.addCommand({ id: "open-jobs", name: t("cmd.openJobs"), callback: () => void this.openJobs() });
@@ -86,7 +100,8 @@ export default class VersobsPlugin extends Plugin {
 	}
 
 	override onunload(): void {
-		this.core?.jobs.cancelAll();
+		this.core?.jobs.dispose();
+		void this.jobStore?.save();
 		this.host?.unloadAll();
 	}
 

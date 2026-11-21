@@ -45,7 +45,7 @@ versline obsidian install --vault ~/Notes    # یا یک والت مشخص
 - روی هر فایل یا پوشه راست‌کلیک کنید: گزینه‌های ورس‌لاین بسته به نوع فایل نمایش داده می‌شوند.
 - روی متن انتخاب‌شده راست‌کلیک کنید: خلاصه یا ترجمه.
 - در فهرست فرمان‌ها (Ctrl/Cmd+P) «Versobs» را جستجو کنید؛ فرمان «اجرای یک ابزار ورس‌لاین…» همه‌ی ابزارها را نشان می‌دهد.
-- پنل **کارهای ورس‌لاین** (آیکن نوار کناری) پیشرفت، گزارش، هزینه و خروجی هر کار را نشان می‌دهد و کارها قابل لغوند. کار نیمه‌تمام در اجرای بعدی از ادامه پیش می‌رود.
+- پنل **کارهای ورس‌لاین** (آیکن نوار کناری) پیشرفت، گزارش، هزینه و خروجی هر کار را نشان می‌دهد و کارها قابل لغوند. کار ناموفق یا لغوشده دکمه‌ی **تلاش دوباره** دارد و از همان جایی که مانده ادامه می‌دهد (هزینه‌ی بخش‌های انجام‌شده دوباره پرداخت نمی‌شود). فهرست کارها بعد از بستن Obsidian هم می‌ماند؛ کاری که هنگام بستن در حال اجرا بود با دکمه‌ی **ادامه** از سر گرفته می‌شود.
 
 </div>
 
@@ -65,6 +65,10 @@ The work is done by [Versline](https://github.com/miroverse-solutions/versline) 
 4. Set the AI provider and API key in the plugin settings, or run `versline init` once.
 
 To update, run `versline obsidian install` again, or use the command **Check for plugin update**.
+
+## Jobs
+
+The **Versline jobs** panel shows progress, logs, cost and outputs. A failed or cancelled job has a **Retry** button; Versline resumes from its cached progress, so finished chunks are not paid for again. The job list is saved to `jobs.json` in the plugin folder: a job that was running when Obsidian closed comes back as *Interrupted* with a **Continue** button. Note-specific follow-ups (such as embedding the audio in a transcript) run only when the job is retried in the same session; after a restart, results get the standard handling (properties, open the note). **Tries per API call** in settings sets how often Versline retries each request before a job fails.
 
 ## Architecture
 

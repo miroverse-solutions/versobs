@@ -15,6 +15,8 @@ export interface VersobsSettings {
 	workdir: string;
 	debugLogs: boolean;
 	concurrency: number;
+	/** How many times Versline tries each API call before giving up (VERSLINE_MAX_RETRIES). */
+	maxRetries: number;
 
 	/** Where new notes go: next to their source, or in one folder. */
 	outputPlacement: OutputPlacement;
@@ -49,6 +51,7 @@ export const DEFAULT_SETTINGS: VersobsSettings = {
 	workdir: "",
 	debugLogs: false,
 	concurrency: 2,
+	maxRetries: 3,
 	outputPlacement: "beside",
 	outputFolder: "Versline",
 	stampProperties: true,
@@ -79,6 +82,7 @@ export function migrateSettings(stored: unknown): VersobsSettings {
 	// Future migrations: if ((data.version ?? 0) < 2) { ... }
 	settings.version = SETTINGS_VERSION;
 	settings.concurrency = Math.min(8, Math.max(1, Math.round(settings.concurrency || 1)));
+	settings.maxRetries = Math.min(10, Math.max(1, Math.round(settings.maxRetries || 3)));
 	return settings;
 }
 

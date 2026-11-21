@@ -106,9 +106,10 @@ export class BridgeService extends Events {
 	options(): ClientOptions {
 		const options = this.baseOptions();
 		const s = this.settings();
+		options.env = { VERSLINE_MAX_RETRIES: String(s.maxRetries) };
 		if (s.vaultLlm && s.llmApiKeySecret) {
 			const key = this.app.secretStorage.getSecret(s.llmApiKeySecret);
-			if (key) options.env = { VERSLINE_LLM_API_KEY: key };
+			if (key) options.env.VERSLINE_LLM_API_KEY = key;
 		}
 		return options;
 	}

@@ -150,6 +150,14 @@
 	color: var(--text-error);
 }
 
+.versobs-job.is-interrupted {
+	border-color: var(--color-orange);
+}
+
+.versobs-job.is-interrupted .versobs-job-icon {
+	color: var(--color-orange);
+}
+
 .versobs-job.is-running .versobs-job-icon svg {
 	animation: versobs-spin 1.2s linear infinite;
 }

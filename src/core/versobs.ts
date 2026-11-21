@@ -6,6 +6,7 @@ import { defaultsOf, expandPattern, fieldsOf, isPathWidget, primaryInput, primar
 import { pick, t } from "../i18n";
 import type { Job, JobManager } from "../jobs/job-manager";
 import type VersobsPlugin from "../main";
+import { notifyOutputs } from "../modules/_shared";
 import { openForm } from "../ui/schema-form-modal";
 import { SetupModal } from "../ui/setup-modal";
 import type { BridgeService } from "./bridge-service";
@@ -27,6 +28,8 @@ export interface RunOptions {
 	remember?: boolean;
 	/** Adjust the values after the form (e.g. derive an output folder from another field). */
 	transform?: (values: Record<string, unknown>) => Record<string, unknown>;
+	/** On failure, keep waiting so a retry from the jobs panel continues this flow (default true; the CLI passes false). */
+	retryable?: boolean;
 }
 
 export interface RunResult {
@@ -111,10 +114,42 @@ export class Versobs {
 		const params = this.toBridgeParams(spec, values);
 		await this.ensureOutputFolders(spec, values);
 		const title = options.title ?? pick(spec.title, spec.name);
-		const { job, done } = this.jobs.submit({ tool: spec.name, title, params });
+		const { job, done } = this.jobs.submit({
+			tool: spec.name,
+			title,
+			params,
+			sourcePath: this.sourceOf(spec, values),
+			retryable: options.retryable,
+		});
 		new Notice(t("notice.started", { title }), 2500);
 		const outcome = await done;
 		return { job, outcome, values, spec };
+	}
+
+	/** Run a failed or interrupted job again (Versline resumes from its cached progress). */
+	async retryJob(job: Job): Promise<void> {
+		if (!(await this.requireTool(job.tool))) return;
+		if (this.jobs.retry(job)) new Notice(t("notice.started", { title: job.title }), 2500);
+	}
+
+	/** Outputs of a job nobody is waiting for (retried after a restart or after its caller gave up). */
+	async finishDetached(job: Job): Promise<void> {
+		const spec = this.bridge.tool(job.tool);
+		if (!spec || !job.outcome) return;
+		const source = job.sourcePath ? this.app.vault.getAbstractFileByPath(job.sourcePath) : null;
+		const result: RunResult = { job, outcome: job.outcome, values: {}, spec };
+		notifyOutputs(this, result);
+		await this.finish(result, { source });
+	}
+
+	/** Vault path of the tool's first input, when it is a file in this vault. */
+	private sourceOf(spec: ToolSpec, values: Record<string, unknown>): string | null {
+		const input = primaryInput(spec);
+		if (!input) return null;
+		const value = values[input.key];
+		const first: unknown = Array.isArray(value) ? (value as unknown[])[0] : value;
+		if (typeof first !== "string" || !first || /^https?:/i.test(first) || VaultPaths.isAbsolute(first)) return null;
+		return this.app.vault.getAbstractFileByPath(first) ? first : null;
 	}
 
 	/** Default output path from the tool's x-output pattern and the first input, if the caller gave none. */

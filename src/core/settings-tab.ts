@@ -227,6 +227,11 @@ export class VersobsSettingTab extends PluginSettingTab {
 						desc: t("settings.concurrencyDesc"),
 						control: { type: "slider", key: "concurrency", min: 1, max: 6, step: 1, displayFormat: (v) => formatNumber(v) },
 					},
+					{
+						name: t("settings.maxRetries"),
+						desc: t("settings.maxRetriesDesc"),
+						control: { type: "slider", key: "maxRetries", min: 1, max: 10, step: 1, displayFormat: (v) => formatNumber(v) },
+					},
 				],
 			},
 			{

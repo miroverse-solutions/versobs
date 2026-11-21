@@ -2,7 +2,7 @@
 import { ItemView, type IconName, ProgressBarComponent, setIcon, setTooltip, type WorkspaceLeaf } from "obsidian";
 import { applyDirection, formatDuration, formatNumber, pick, t } from "../i18n";
 import type { Versobs } from "../core/versobs";
-import type { Job, JobStatus } from "./job-manager";
+import { addCost, canRetry, type Job, type JobStatus } from "./job-manager";
 
 export const JOBS_VIEW = "versobs-jobs";
 
@@ -12,6 +12,7 @@ const STATUS_ICON: Record<JobStatus, IconName> = {
 	success: "check-circle",
 	error: "alert-circle",
 	cancelled: "x-circle",
+	interrupted: "pause-circle",
 };
 
 export class JobsView extends ItemView {
@@ -88,6 +89,10 @@ export class JobsView extends ItemView {
 			this.render();
 		});
 		head.createSpan({ cls: "versobs-job-time", text: this.elapsed(job) });
+		if (canRetry(job)) {
+			const label = job.status === "interrupted" ? t("jobs.continue") : t("jobs.retry");
+			this.iconButton(head, job.status === "interrupted" ? "play" : "rotate-ccw", label, () => void this.core.retryJob(job));
+		}
 		if (job.status === "running" || job.status === "queued") {
 			this.iconButton(head, "square", t("jobs.cancel"), () => this.core.jobs.cancel(job));
 		}
@@ -107,7 +112,11 @@ export class JobsView extends ItemView {
 		if (job.status === "error" && job.outcome?.error) {
 			card.createDiv({ cls: "versobs-job-error", text: job.outcome.error.message });
 		}
-		if (job.cost && (job.cost.usd || job.cost.irt || job.cost.input_tokens)) {
+		if (job.status === "interrupted") {
+			card.createDiv({ cls: "versobs-job-label", text: t("jobs.interrupted") });
+		}
+		const cost = addCost(job.priorCost, job.cost);
+		if (cost && (cost.usd || cost.irt || cost.input_tokens)) {
 			card.createDiv({ cls: "versobs-job-cost", text: costText(job) });
 		}
 
@@ -142,8 +151,9 @@ export class JobsView extends ItemView {
 	}
 
 	private elapsed(job: Job): string {
-		if (!job.startedAt) return t("jobs.queued");
-		return formatDuration((job.endedAt ?? Date.now()) - job.startedAt);
+		const attempt = job.attempts > 1 ? `${t("jobs.attempt", { count: job.attempts })} · ` : "";
+		if (!job.startedAt) return attempt + t("jobs.queued");
+		return attempt + formatDuration((job.endedAt ?? Date.now()) - job.startedAt);
 	}
 
 	private iconButton(parent: HTMLElement, icon: IconName, label: string, onClick: () => void): void {
@@ -156,8 +166,9 @@ export class JobsView extends ItemView {
 	}
 }
 
+/** Cost of all attempts of the job. */
 export function costText(job: Job): string {
-	const cost = job.cost;
+	const cost = addCost(job.priorCost, job.cost);
 	if (!cost) return "";
 	const parts = [t("jobs.tokens", { input: cost.input_tokens, output: cost.output_tokens })];
 	if (cost.usd) parts.push(`$${cost.usd.toFixed(4)}`);
