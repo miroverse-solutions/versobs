@@ -200,6 +200,7 @@ export class SchemaFormModal extends Modal {
 				label.empty();
 				label.removeClass("versobs-path");
 				label.setText(t("form.defaultFolder"));
+				label.title = t("form.defaultFolder");
 			} else renderPath(label, this.folder, "›", this.app.vault.getName());
 		};
 		show();

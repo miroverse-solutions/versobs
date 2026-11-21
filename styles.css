@@ -103,7 +103,11 @@
 }
 
 .versobs-folder-btn {
-	flex: 1;
+	flex: 1 1 16em;
+	width: auto;
+	max-width: 100%;
+	height: auto;
+	padding: var(--size-4-1) var(--size-4-3);
 	display: flex;
 	align-items: center;
 	gap: var(--size-2-3);
@@ -113,7 +117,9 @@
 	font-size: var(--font-ui-small);
 }
 
-.versobs-folder-btn .versobs-path {
+.versobs-folder-btn > span:last-child {
+	flex: 1;
+	min-width: 0;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
