@@ -125,3 +125,37 @@ export function primaryInput(spec: ToolSpec): Field | undefined {
 export function primaryOutput(spec: ToolSpec): Field | undefined {
 	return fieldsOf(spec).find((f) => f.schema["x-widget"] === "output-file" || f.schema["x-widget"] === "output-folder");
 }
+
+/** File stem of a file path (vault or absolute); null for links, which have no file name to reuse. */
+export function inputStem(input: string): string | null {
+	if (/^[a-z][a-z0-9+.-]*:\/\//i.test(input) && !/^file:/i.test(input)) return null;
+	return splitPath(input).stem || null;
+}
+
+export interface OutputParts {
+	/** Folder part ("" = vault root / unspecified). */
+	folder: string;
+	/** File name without extension (for an output folder: the folder's own name). */
+	name: string;
+	/** Extension with the dot (".md"), or "". */
+	ext: string;
+}
+
+/** Split an output value into folder + name + extension so each can be edited on its own. */
+export function splitOutput(value: string, kind: "file" | "folder"): OutputParts {
+	const parts = splitPath(value);
+	let folder = parts.dir;
+	if (!folder && /^[\\/]/.test(value.trim())) folder = "/";
+	if (/^[a-zA-Z]:$/.test(folder)) folder += "/";
+	if (kind === "folder") return { folder, name: parts.name, ext: "" };
+	return { folder, name: parts.stem, ext: parts.ext };
+}
+
+/** Inverse of splitOutput. An empty name gives "" (the tool's default is used); a typed extension is not doubled. */
+export function joinOutput({ folder, name, ext }: OutputParts): string {
+	const base = name.trim();
+	if (!base) return "";
+	const file = ext && !base.toLowerCase().endsWith(ext.toLowerCase()) ? base + ext : base;
+	if (!folder) return file;
+	return /[\\/]$/.test(folder) ? folder + file : `${folder}/${file}`;
+}

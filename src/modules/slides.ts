@@ -2,7 +2,7 @@
 import type { TFile } from "obsidian";
 import type { ModuleContext, VersobsModule } from "../core/module";
 import { t } from "../i18n";
-import { activeFileCommand, addMenuItem, isMarkdown, notifyOutputs, outputName } from "./_shared";
+import { activeFileCommand, addFilesMenuItem, addMenuItem, isMarkdown, notifyOutputs, outputName } from "./_shared";
 
 async function makeSlides(ctx: ModuleContext, file: TFile): Promise<void> {
 	const core = ctx.core;
@@ -18,6 +18,26 @@ async function makeSlides(ctx: ModuleContext, file: TFile): Promise<void> {
 	else notifyOutputs(core, result, t("slides.done"));
 }
 
+async function makeSlidesMany(ctx: ModuleContext, inputs: string[]): Promise<void> {
+	const core = ctx.core;
+	await core.runEach({
+		tool: "slides",
+		inputs,
+		formTitle: t("slides.cmdBatch"),
+		hidden: ["output_dir"],
+		title: (input) => t("slides.title", { name: core.inputName(input) }),
+		perInput: (input) => ({
+			output_dir: core.outputFor(input, (stem) => outputName("tpl.slides", { stem: stem ?? "" })),
+		}),
+		after: async (result, _input, single) => {
+			if (result.outcome.status !== "success") return;
+			const decks = (result.outcome.data.decks as string[] | undefined) ?? [];
+			if (single && decks[0] && core.settings.openResults) await core.openExternal(decks[0]);
+			else notifyOutputs(core, result, t("slides.done"));
+		},
+	});
+}
+
 export const slidesModule: VersobsModule = {
 	id: "slides",
 	name: "module.slides",
@@ -26,6 +46,17 @@ export const slidesModule: VersobsModule = {
 	load(ctx) {
 		ctx.onFileMenu((menu, file) => {
 			if (isMarkdown(file)) addMenuItem(menu, t("slides.menu"), "presentation", () => void makeSlides(ctx, file));
+		});
+		ctx.onFilesMenu((menu, files) =>
+			addFilesMenuItem(menu, files, isMarkdown, (count) => t("slides.menuMany", { count }), "presentation", (list) =>
+				void makeSlidesMany(ctx, list.map((f) => f.path)),
+			),
+		);
+		ctx.addCommand({
+			id: "batch",
+			name: t("slides.cmdBatch"),
+			icon: "presentation",
+			callback: () => void makeSlidesMany(ctx, []),
 		});
 		ctx.addCommand({
 			id: "active-file",

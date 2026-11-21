@@ -100,6 +100,15 @@ const fa: Record<keyof typeof en, string> = {
 	"form.commaSeparated": "با ویرگول جدا کنید",
 	"form.addFile": "افزودن فایل…",
 	"form.addFolder": "افزودن پوشه…",
+	"form.browse": "انتخاب…",
+	"form.chooseFolder": "انتخاب پوشه (یا نوشتن نام پوشه‌ی جدید)…",
+	"form.newFolder": "پوشه‌ی جدید: {name}",
+	"form.outputFolder": "پوشه",
+	"form.outputName": "نام فایل",
+
+	// batches
+	"batch.intro": "هر فایل یا لینک به‌صورت یک کار جداگانه اجرا می‌شود. کارها به ترتیب و به تعداد تنظیم «کارهای هم‌زمان» اجرا می‌شوند.",
+	"batch.done": "دسته تمام شد: {ok} موفق، {failed} ناموفق.",
 
 	"jobs.title": "کارهای ورس‌لاین",
 	"jobs.empty": "هنوز کاری اجرا نشده. از منوی فایل یا فهرست فرمان‌ها یک ابزار ورس‌لاین را اجرا کنید.",
@@ -197,10 +206,11 @@ const fa: Record<keyof typeof en, string> = {
 
 	"transcribe.menu": "پیاده‌سازی متن با ورس‌لاین",
 	"transcribe.cmdFile": "پیاده‌سازی متنِ فایل صوتی/تصویری فعلی",
-	"transcribe.cmdUrl": "پیاده‌سازی متن از لینک…",
+	"transcribe.cmdUrl": "پیاده‌سازی متن از فایل‌ها یا لینک‌ها…",
+	"transcribe.menuMany": "پیاده‌سازی متن {count} فایل با ورس‌لاین",
 	"transcribe.title": "پیاده‌سازی {name}",
 	"transcribe.titleUrl": "پیاده‌سازی متن از لینک",
-	"transcribe.urlIntro": "یک یا چند لینک (یا مسیر فایل) را وارد کنید و بعد از هر کدام Enter بزنید.",
+	"transcribe.urlIntro": "فایل‌ها را با دکمه‌ی انتخاب اضافه کنید، یا لینک‌ها را بچسبانید و پس از هرکدام Enter بزنید. هرکدام یک کار جداگانه است.",
 	"transcribe.embed": "درج فایل صوتی در یادداشت متن",
 	"transcribe.embedDesc": "‏![[فایل صوتی]] در ابتدای یادداشت متن قرار می‌گیرد.",
 	"transcribe.timestamped": "زمان‌بندی به‌طور پیش‌فرض",
@@ -209,6 +219,8 @@ const fa: Record<keyof typeof en, string> = {
 	"summarize.menu": "خلاصه‌سازی با ورس‌لاین",
 	"summarize.menuSelection": "خلاصه‌سازی متن انتخاب‌شده",
 	"summarize.cmdFile": "خلاصه‌سازی فایل فعلی",
+	"summarize.cmdBatch": "خلاصه‌سازی چند فایل…",
+	"summarize.menuMany": "خلاصه‌سازی {count} فایل با ورس‌لاین",
 	"summarize.cmdSelection": "خلاصه‌سازی متن انتخاب‌شده",
 	"summarize.title": "خلاصه‌ی {name}",
 	"summarize.selectionTitle": "خلاصه‌ی متن انتخاب‌شده",
@@ -217,6 +229,8 @@ const fa: Record<keyof typeof en, string> = {
 	"translate.menu": "ترجمه با ورس‌لاین",
 	"translate.menuSelection": "ترجمه‌ی متن انتخاب‌شده",
 	"translate.cmdFile": "ترجمه‌ی یادداشت فعلی",
+	"translate.cmdBatch": "ترجمه‌ی چند یادداشت…",
+	"translate.menuMany": "ترجمه‌ی {count} یادداشت با ورس‌لاین",
 	"translate.cmdSelection": "ترجمه‌ی متن انتخاب‌شده",
 	"translate.title": "ترجمه‌ی {name}",
 	"translate.selectionTitle": "ترجمه‌ی متن انتخاب‌شده",
@@ -226,6 +240,8 @@ const fa: Record<keyof typeof en, string> = {
 
 	"export.menu": "خروجی Word/PDF",
 	"export.cmdFile": "خروجی Word/PDF از یادداشت فعلی",
+	"export.cmdBatch": "خروجی Word/PDF از چند یادداشت…",
+	"export.menuMany": "خروجی Word/PDF از {count} یادداشت",
 	"export.title": "خروجی {name}",
 	"export.done": "خروجی ساخته شد:",
 	"export.folder": "پوشه‌ی خروجی",
@@ -235,16 +251,20 @@ const fa: Record<keyof typeof en, string> = {
 
 	"flashcards.menu": "ساخت سؤال و فلش‌کارت",
 	"flashcards.cmdFile": "ساخت سؤال و فلش‌کارت از فایل فعلی",
+	"flashcards.menuMany": "ساخت سؤال و فلش‌کارت از {count} فایل",
 	"flashcards.title": "سؤال از {name}",
 	"flashcards.done": "سؤال‌ها ساخته شد:",
 
 	"slides.menu": "ساخت اسلاید",
 	"slides.cmdFile": "ساخت اسلاید از یادداشت فعلی",
+	"slides.cmdBatch": "ساخت اسلاید از چند یادداشت…",
+	"slides.menuMany": "ساخت اسلاید از {count} یادداشت",
 	"slides.title": "اسلاید از {name}",
 	"slides.done": "اسلاید ساخته شد:",
 
 	"qualcode.menu": "کدگذاری کیفی",
 	"qualcode.cmdFile": "کدگذاری مصاحبه‌ی فعلی",
+	"qualcode.menuMany": "کدگذاری هم‌زمان {count} مصاحبه",
 	"qualcode.title": "کدگذاری {name}",
 	"qualcode.done": "نتیجه‌ی کدگذاری:",
 

@@ -1,8 +1,8 @@
 // Questions and flashcards (multiple choice or descriptive) exported to Anki, CSV and HTML.
-import { type TAbstractFile, TFolder } from "obsidian";
+import { type TAbstractFile, type TFile, TFolder } from "obsidian";
 import type { ModuleContext, VersobsModule } from "../core/module";
 import { t } from "../i18n";
-import { activeFileCommand, addMenuItem, isDocument, notifyOutputs, outputName } from "./_shared";
+import { activeFileCommand, addFilesMenuItem, addMenuItem, isDocument, notifyOutputs, outputName } from "./_shared";
 
 async function makeQuestions(ctx: ModuleContext, item: TAbstractFile): Promise<void> {
 	const core = ctx.core;
@@ -20,6 +20,23 @@ async function makeQuestions(ctx: ModuleContext, item: TAbstractFile): Promise<v
 	await core.finish(result, { source: item, stamp: false });
 }
 
+/** Several files go into one job: the questions draw on all of them together. */
+async function makeQuestionsFromMany(ctx: ModuleContext, files: TFile[]): Promise<void> {
+	const core = ctx.core;
+	const first = files[0];
+	if (!first) return;
+	const result = await core.runTool({
+		tool: "qude",
+		title: t("flashcards.title", { name: `${first.name} +${files.length - 1}` }),
+		values: {
+			inputs: files.map((f) => f.path),
+			output_dir: core.outputPath(first, outputName("tpl.questions", { stem: first.basename })),
+		},
+	});
+	notifyOutputs(core, result, t("flashcards.done"));
+	await core.finish(result, { source: first, stamp: false });
+}
+
 export const flashcardsModule: VersobsModule = {
 	id: "flashcards",
 	name: "module.flashcards",
@@ -31,6 +48,11 @@ export const flashcardsModule: VersobsModule = {
 				addMenuItem(menu, t("flashcards.menu"), "layers", () => void makeQuestions(ctx, file));
 			}
 		});
+		ctx.onFilesMenu((menu, files) =>
+			addFilesMenuItem(menu, files, isDocument, (count) => t("flashcards.menuMany", { count }), "layers", (list) =>
+				void makeQuestionsFromMany(ctx, list),
+			),
+		);
 		ctx.addCommand({
 			id: "active-file",
 			name: t("flashcards.cmdFile"),

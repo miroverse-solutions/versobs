@@ -1,5 +1,6 @@
 // Autocomplete vault files or folders in a text input.
 import { AbstractInputSuggest, type App, prepareFuzzySearch, TFile, TFolder, type TAbstractFile } from "obsidian";
+import { renderPath } from "./path-view";
 
 export class PathSuggest extends AbstractInputSuggest<TAbstractFile> {
 	constructor(
@@ -25,7 +26,7 @@ export class PathSuggest extends AbstractInputSuggest<TAbstractFile> {
 	}
 
 	renderSuggestion(file: TAbstractFile, el: HTMLElement): void {
-		el.setText(file.path === "/" ? "/" : file.path);
+		renderPath(el, file.path === "/" ? "" : file.path);
 	}
 
 	override selectSuggestion(file: TAbstractFile): void {

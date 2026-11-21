@@ -2,7 +2,7 @@
 import { type App, Notice, type TAbstractFile, TFile } from "obsidian";
 import type { RunOutcome } from "../bridge/client";
 import type { ToolSpec } from "../bridge/protocol";
-import { defaultsOf, expandPattern, fieldsOf, isPathWidget, primaryInput, primaryOutput } from "../bridge/schema";
+import { defaultsOf, expandPattern, fieldsOf, inputStem, isPathWidget, primaryInput, primaryOutput } from "../bridge/schema";
 import { pick, t } from "../i18n";
 import type { Job, JobManager } from "../jobs/job-manager";
 import type VersobsPlugin from "../main";
@@ -30,6 +30,24 @@ export interface RunOptions {
 	transform?: (values: Record<string, unknown>) => Record<string, unknown>;
 	/** On failure, keep waiting so a retry from the jobs panel continues this flow (default true; the CLI passes false). */
 	retryable?: boolean;
+}
+
+export interface BatchOptions {
+	tool: string;
+	/** Files or links to start with; the form lets the user add or remove more. */
+	inputs: string[];
+	/** Job title for one input. */
+	title: (input: string) => string;
+	/** Values specific to one input (typically its output path). `index` is the input's position. */
+	perInput: (input: string, values: Record<string, unknown>, index: number) => Record<string, unknown>;
+	/** Fields the caller fills per input; the form does not show them. */
+	hidden?: string[];
+	formTitle?: string;
+	intro?: string;
+	/** Other initial form values. */
+	values?: Record<string, unknown>;
+	/** Called as each job succeeds or fails; `single` is true when the batch has one input. */
+	after?: (result: RunResult, input: string, single: boolean) => Promise<void> | void;
 }
 
 export interface RunResult {
@@ -124,6 +142,93 @@ export class Versobs {
 		new Notice(t("notice.started", { title }), 2500);
 		const outcome = await done;
 		return { job, outcome, values, spec };
+	}
+
+	/**
+	 * Ask once, then queue one job per input (file or link). The job queue applies the concurrency limit,
+	 * so with a limit of 1 the files run one after another. Resolves when every job has finished.
+	 */
+	async runEach(options: BatchOptions): Promise<void> {
+		const spec = await this.requireTool(options.tool);
+		if (!spec) return;
+		const input = primaryInput(spec);
+		if (!input) return;
+		const asList = input.schema["x-widget"] === "files" || input.schema.type === "array";
+		const remembered = this.settings.lastParams[spec.name] ?? {};
+		let values: Record<string, unknown> = { ...defaultsOf(spec), ...remembered, ...(options.values ?? {}) };
+		values[input.key] = asList ? [...options.inputs] : (options.inputs[0] ?? "");
+
+		const submitted = await openForm(this.app, {
+			spec,
+			values,
+			hidden: options.hidden,
+			title: options.formTitle,
+			intro: options.intro ?? t("batch.intro"),
+			submitText: undefined,
+		});
+		if (!submitted) return;
+		values = { ...pickHidden(values, options.hidden), ...submitted };
+		await this.remember(spec, values);
+
+		const raw = values[input.key];
+		const inputs = (Array.isArray(raw) ? (raw as unknown[]) : [raw]).filter(
+			(v): v is string => typeof v === "string" && v.trim() !== "",
+		);
+		if (!inputs.length) return;
+		const single = inputs.length === 1;
+
+		const runs = inputs.map(async (item, index): Promise<RunResult | null> => {
+			const own: Record<string, unknown> = {
+				...values,
+				[input.key]: asList ? [item] : item,
+				...options.perInput(item, values, index),
+			};
+			await this.ensureOutputFolders(spec, own);
+			const title = options.title(item);
+			const { job, done } = this.jobs.submit({
+				tool: spec.name,
+				title,
+				params: this.toBridgeParams(spec, own),
+				sourcePath: this.sourceOf(spec, own),
+			});
+			new Notice(t("notice.started", { title }), 2500);
+			const outcome = await done;
+			const result: RunResult = { job, outcome, values: own, spec };
+			try {
+				await options.after?.(result, item, single);
+			} catch (err) {
+				console.warn("[versobs] post-processing failed for", item, err);
+			}
+			return result;
+		});
+		const results = await Promise.all(runs);
+		if (!single) {
+			const ok = results.filter((r) => r?.outcome.status === "success").length;
+			new Notice(t("batch.done", { ok, failed: results.length - ok }), 8000);
+		}
+	}
+
+	/** The vault file an input points to (vault path, or absolute path inside the vault); null for links and outside files. */
+	sourceFile(input: string): TFile | null {
+		if (/^https?:\/\//i.test(input)) return null;
+		const vaultPath = VaultPaths.isAbsolute(input) ? this.paths.toVault(input) : input;
+		return vaultPath ? this.app.vault.getFileByPath(vaultPath) : null;
+	}
+
+	/**
+	 * Output path for an input: next to a vault file, or in the output folder for files outside the vault and links.
+	 * `name` builds the file name from the input's stem (null for a link).
+	 */
+	outputFor(input: string, name: (stem: string | null) => string): string {
+		const file = this.sourceFile(input);
+		return this.outputPath(file ?? this.app.workspace.getActiveFile(), name(file ? file.basename : inputStem(input)));
+	}
+
+	/** A short name for an input in titles: the file name, or the link itself. */
+	inputName(input: string): string {
+		const file = this.sourceFile(input);
+		if (file) return file.name;
+		return inputStem(input) === null ? input : (input.split(/[\\/]/).pop() ?? input);
 	}
 
 	/** Run a failed or interrupted job again (Versline resumes from its cached progress). */

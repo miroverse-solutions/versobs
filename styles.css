@@ -73,6 +73,62 @@
 	word-break: break-all;
 }
 
+.versobs-path,
+.versobs-path-item,
+.versobs-form input[dir="auto"] {
+	unicode-bidi: plaintext;
+}
+
+.versobs-path-seg {
+	unicode-bidi: isolate;
+}
+
+.versobs-path-sep {
+	color: var(--text-faint);
+	unicode-bidi: isolate;
+}
+
+.versobs-output {
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	gap: var(--size-2-2);
+	width: min(28em, 100%);
+}
+
+.versobs-output-row {
+	display: flex;
+	align-items: center;
+	gap: var(--size-4-2);
+}
+
+.versobs-folder-btn {
+	flex: 1;
+	display: flex;
+	align-items: center;
+	gap: var(--size-2-3);
+	min-width: 0;
+	overflow: hidden;
+	text-align: start;
+	font-size: var(--font-ui-small);
+}
+
+.versobs-folder-btn .versobs-path {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.versobs-output-name {
+	flex: 1;
+	min-width: 0;
+}
+
+.versobs-output-ext {
+	color: var(--text-muted);
+	direction: ltr;
+}
+
 .versobs-path-item button {
 	padding: 0 var(--size-4-1);
 	box-shadow: none;

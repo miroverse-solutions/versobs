@@ -8,11 +8,15 @@ import {
 	defaultsOf,
 	expandPattern,
 	fieldsOf,
+	inputStem,
+	joinOutput,
 	missingRequired,
 	primaryInput,
 	primaryOutput,
+	splitOutput,
 	splitPath,
 } from "../src/bridge/schema";
+import { acceptToFilters } from "../src/ui/native-picker";
 import { getPath, migrateSettings, setPath } from "../src/core/settings";
 import { formatNumber, joinList, pick, resolveLanguage, setLanguage, t } from "../src/i18n";
 import en from "../src/i18n/locales/en";
@@ -146,5 +150,59 @@ describe("settings", () => {
 		setPath(root, "moduleSettings.telegram.folder", "TG");
 		expect(getPath(root, "moduleSettings.telegram.folder")).toBe("TG");
 		expect(getPath(root, "moduleSettings.nope.x")).toBeUndefined();
+	});
+});
+
+describe("native picker filters", () => {
+	it("builds a filter from x-accept plus all files", () => {
+		expect(acceptToFilters([".MP3", ".wav", ".mp3"], "All")).toEqual([
+			{ name: ".mp3 .wav", extensions: ["mp3", "wav"] },
+			{ name: "All", extensions: ["*"] },
+		]);
+	});
+	it("has no filter without x-accept", () => {
+		expect(acceptToFilters(undefined)).toEqual([]);
+		expect(acceptToFilters([])).toEqual([]);
+	});
+});
+
+describe("inputStem", () => {
+	it("returns the file stem for vault and absolute paths", () => {
+		expect(inputStem("Audio/lecture 1.mp3")).toBe("lecture 1");
+		expect(inputStem("/home/me/talk.final.wav")).toBe("talk.final");
+		expect(inputStem("C:\\Users\\me\\clip.m4a")).toBe("clip");
+	});
+	it("returns null for links", () => {
+		expect(inputStem("https://youtu.be/abc")).toBeNull();
+		expect(inputStem("http://example.com/a.mp3")).toBeNull();
+	});
+});
+
+describe("output path parts", () => {
+	it("splits a Persian vault path", () => {
+		expect(splitOutput("صوت/جلسه ۱ - متن.md", "file")).toEqual({ folder: "صوت", name: "جلسه ۱ - متن", ext: ".md" });
+	});
+	it("keeps dots inside the name", () => {
+		expect(splitOutput("a/b/talk.final.md", "file")).toEqual({ folder: "a/b", name: "talk.final", ext: ".md" });
+	});
+	it("handles root-level and absolute files", () => {
+		expect(splitOutput("note.md", "file")).toEqual({ folder: "", name: "note", ext: ".md" });
+		expect(splitOutput("/note.md", "file").folder).toBe("/");
+		expect(splitOutput("/home/me/out/x.md", "file").folder).toBe("/home/me/out");
+		expect(splitOutput("C:\\out\\x.md", "file").folder).toBe("C:\\out");
+		expect(splitOutput("C:\\x.md", "file").folder).toBe("C:/");
+	});
+	it("treats the last segment of an output folder as its name", () => {
+		expect(splitOutput("خروجی/اسلاید", "folder")).toEqual({ folder: "خروجی", name: "اسلاید", ext: "" });
+	});
+	it("joins back, without doubling the extension", () => {
+		expect(joinOutput({ folder: "صوت", name: "جلسه", ext: ".md" })).toBe("صوت/جلسه.md");
+		expect(joinOutput({ folder: "a", name: "x.md", ext: ".md" })).toBe("a/x.md");
+		expect(joinOutput({ folder: "", name: "x", ext: ".md" })).toBe("x.md");
+		expect(joinOutput({ folder: "/", name: "x", ext: ".md" })).toBe("/x.md");
+		expect(joinOutput({ folder: "C:/", name: "x", ext: "" })).toBe("C:/x");
+	});
+	it("gives an empty value for an empty name so the default applies", () => {
+		expect(joinOutput({ folder: "a", name: "  ", ext: ".md" })).toBe("");
 	});
 });

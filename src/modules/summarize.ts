@@ -4,6 +4,7 @@ import type { ModuleContext, VersobsModule } from "../core/module";
 import { t } from "../i18n";
 import {
 	activeFileCommand,
+	addFilesMenuItem,
 	addMenuItem,
 	type InsertMode,
 	insertResult,
@@ -24,6 +25,23 @@ async function summarizeFile(ctx: ModuleContext, file: TFile): Promise<void> {
 		hidden: ["inputs"],
 	});
 	await core.finish(result, { source: file });
+}
+
+async function summarizeMany(ctx: ModuleContext, inputs: string[]): Promise<void> {
+	const core = ctx.core;
+	await core.runEach({
+		tool: "summarize.file",
+		inputs,
+		formTitle: t("summarize.cmdBatch"),
+		hidden: ["output"],
+		title: (input) => t("summarize.title", { name: core.inputName(input) }),
+		perInput: (input) => ({
+			output: core.outputFor(input, (stem) => outputName("tpl.summary", { stem: stem ?? "" }) + ".md"),
+		}),
+		after: async (result, input, single) => {
+			await core.finish(result, { source: core.sourceFile(input), open: single ? undefined : false });
+		},
+	});
 }
 
 async function summarizeSelection(ctx: ModuleContext, editor: Editor): Promise<void> {
@@ -61,6 +79,11 @@ export const summarizeModule: VersobsModule = {
 		ctx.onFileMenu((menu, file) => {
 			if (isDocument(file)) addMenuItem(menu, t("summarize.menu"), "list-collapse", () => void summarizeFile(ctx, file));
 		});
+		ctx.onFilesMenu((menu, files) =>
+			addFilesMenuItem(menu, files, isDocument, (count) => t("summarize.menuMany", { count }), "list-collapse", (list) =>
+				void summarizeMany(ctx, list.map((f) => f.path)),
+			),
+		);
 		ctx.onEditorMenu((menu, editor) => {
 			if (editor.getSelection().trim()) {
 				addMenuItem(menu, t("summarize.menuSelection"), "list-collapse", () => void summarizeSelection(ctx, editor));
@@ -71,6 +94,12 @@ export const summarizeModule: VersobsModule = {
 			name: t("summarize.cmdFile"),
 			icon: "list-collapse",
 			checkCallback: activeFileCommand(ctx.core, isDocument, (file) => void summarizeFile(ctx, file)),
+		});
+		ctx.addCommand({
+			id: "batch",
+			name: t("summarize.cmdBatch"),
+			icon: "list-collapse",
+			callback: () => void summarizeMany(ctx, []),
 		});
 		ctx.addCommand({
 			id: "selection",

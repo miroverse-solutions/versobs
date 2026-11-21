@@ -107,6 +107,15 @@ const en = {
 	"form.commaSeparated": "Comma-separated",
 	"form.addFile": "Add a file…",
 	"form.addFolder": "Add a folder…",
+	"form.browse": "Browse…",
+	"form.chooseFolder": "Choose a folder (or type a new folder name)…",
+	"form.newFolder": "New folder: {name}",
+	"form.outputFolder": "Folder",
+	"form.outputName": "File name",
+
+	// batches
+	"batch.intro": "Each file or link runs as a separate job. Jobs run in order, as many at a time as the concurrency setting allows.",
+	"batch.done": "Batch finished: {ok} succeeded, {failed} failed.",
 
 	// jobs panel
 	"jobs.title": "Versline jobs",
@@ -209,10 +218,11 @@ const en = {
 	// transcribe
 	"transcribe.menu": "Transcribe with Versline",
 	"transcribe.cmdFile": "Transcribe the current audio/video file",
-	"transcribe.cmdUrl": "Transcribe from a link…",
+	"transcribe.cmdUrl": "Transcribe files or links…",
+	"transcribe.menuMany": "Transcribe {count} files with Versline",
 	"transcribe.title": "Transcribe {name}",
 	"transcribe.titleUrl": "Transcribe from a link",
-	"transcribe.urlIntro": "Paste one or more links (or file paths) and press Enter after each.",
+	"transcribe.urlIntro": "Add files with Browse, or paste links and press Enter after each. Each one runs as a separate job.",
 	"transcribe.embed": "Embed the media in the transcript",
 	"transcribe.embedDesc": "Put ![[audio file]] at the top of the transcript note.",
 	"transcribe.timestamped": "Timestamps by default",
@@ -222,6 +232,8 @@ const en = {
 	"summarize.menu": "Summarize with Versline",
 	"summarize.menuSelection": "Summarize selection",
 	"summarize.cmdFile": "Summarize the current file",
+	"summarize.cmdBatch": "Summarize several files…",
+	"summarize.menuMany": "Summarize {count} files with Versline",
 	"summarize.cmdSelection": "Summarize the selection",
 	"summarize.title": "Summarize {name}",
 	"summarize.selectionTitle": "Summarize selection",
@@ -231,6 +243,8 @@ const en = {
 	"translate.menu": "Translate with Versline",
 	"translate.menuSelection": "Translate selection",
 	"translate.cmdFile": "Translate the current note",
+	"translate.cmdBatch": "Translate several notes…",
+	"translate.menuMany": "Translate {count} notes with Versline",
 	"translate.cmdSelection": "Translate the selection",
 	"translate.title": "Translate {name}",
 	"translate.selectionTitle": "Translate selection",
@@ -241,6 +255,8 @@ const en = {
 	// export
 	"export.menu": "Export to Word/PDF",
 	"export.cmdFile": "Export the current note to Word/PDF",
+	"export.cmdBatch": "Export several notes to Word/PDF…",
+	"export.menuMany": "Export {count} notes to Word/PDF",
 	"export.title": "Export {name}",
 	"export.done": "Exported:",
 	"export.folder": "Export folder",
@@ -251,18 +267,22 @@ const en = {
 	// flashcards
 	"flashcards.menu": "Make questions & flashcards",
 	"flashcards.cmdFile": "Make questions & flashcards from the current file",
+	"flashcards.menuMany": "Make questions & flashcards from {count} files",
 	"flashcards.title": "Questions from {name}",
 	"flashcards.done": "Questions created:",
 
 	// slides
 	"slides.menu": "Make slides",
 	"slides.cmdFile": "Make slides from the current note",
+	"slides.cmdBatch": "Make slides from several notes…",
+	"slides.menuMany": "Make slides from {count} notes",
 	"slides.title": "Slides from {name}",
 	"slides.done": "Slides created:",
 
 	// qualcode
 	"qualcode.menu": "Qualitative coding",
 	"qualcode.cmdFile": "Code the current interview",
+	"qualcode.menuMany": "Code {count} interviews together",
 	"qualcode.title": "Coding {name}",
 	"qualcode.done": "Coding results:",
 

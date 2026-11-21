@@ -1,10 +1,14 @@
 // A form generated from a tool's parameter schema (bilingual labels and widget hints come from Versline).
 // This is what lets any new Versline tool be used from Obsidian without plugin changes.
-import { type App, Modal, Notice, Setting } from "obsidian";
+import { type App, Modal, Notice, setIcon, Setting, type TextComponent } from "obsidian";
 import type { ParamSchema, ToolSpec } from "../bridge/protocol";
-import { asText, coerce, type Field, fieldsOf, missingRequired } from "../bridge/schema";
+import { asText, coerce, type Field, fieldsOf, joinOutput, missingRequired, splitOutput } from "../bridge/schema";
 import { applyDirection, joinList, pick, t } from "../i18n";
+import { VaultPaths } from "../core/paths";
 import { PathSuggest } from "./file-suggest";
+import { FolderPickerModal } from "./folder-picker";
+import { pickPaths } from "./native-picker";
+import { renderPath } from "./path-view";
 
 export interface FormOptions {
 	spec: ToolSpec;
@@ -143,20 +147,113 @@ export class SchemaFormModal extends Modal {
 			});
 			return;
 		}
+		if (widget === "output-file" || widget === "output-folder") {
+			this.renderOutputField(setting, prop, current, widget === "output-folder" ? "folder" : "file", set);
+			return;
+		}
 
+		let textInput: TextComponent | null = null;
 		setting.addText((text) => {
+			textInput = text;
 			text.setValue(asText(current)).onChange(set);
 			text.inputEl.addClass("versobs-wide-input");
 			if (widget === "secret") text.inputEl.type = "password";
 			if (prop.type === "integer" || prop.type === "number") text.inputEl.type = "number";
 			if (widget === "date") text.setPlaceholder("1404-07-01");
+			if (widget === "file" || widget === "folder") text.inputEl.dir = "auto";
 			if (widget === "file") new PathSuggest(this.app, text.inputEl, "file", prop["x-accept"]);
-			if (widget === "folder" || widget === "output-folder") new PathSuggest(this.app, text.inputEl, "folder");
-			if (widget === "output-file") new PathSuggest(this.app, text.inputEl, "file");
+			if (widget === "folder") new PathSuggest(this.app, text.inputEl, "folder");
 			if (prop.default !== undefined && prop.default !== null && current === undefined) {
 				text.setPlaceholder(asText(prop.default));
 			}
 		});
+		const browseKind = widget === "file" ? "file" : widget === "folder" ? "folder" : null;
+		if (browseKind && textInput) {
+			const input: TextComponent = textInput;
+			this.addBrowse(setting, browseKind, false, prop["x-accept"], (paths) => {
+				const value = paths[0];
+				if (value === undefined) return;
+				input.setValue(value);
+				set(value);
+			});
+		}
+	}
+
+	/**
+	 * Output file/folder: pick the folder from a list (or the system dialog) and edit just the name,
+	 * so Persian paths never have to be typed or read as one scrambled line. The value stays one string.
+	 */
+	private renderOutputField(
+		setting: Setting,
+		prop: ParamSchema,
+		current: unknown,
+		kind: "file" | "folder",
+		set: (value: unknown) => void,
+	): void {
+		const fallback = splitOutput(asText(prop.default), kind);
+		const parts = splitOutput(asText(current), kind);
+		if (kind === "file" && !parts.ext) parts.ext = fallback.ext;
+		const update = () => set(joinOutput(parts));
+
+		const box = setting.controlEl.createDiv({ cls: "versobs-output" });
+		const folderRow = box.createDiv({ cls: "versobs-output-row" });
+		const folderBtn = folderRow.createEl("button", {
+			cls: "versobs-folder-btn",
+			attr: { "aria-label": t("form.outputFolder") },
+		});
+		setIcon(folderBtn.createSpan(), "folder");
+		const label = folderBtn.createSpan();
+		const showFolder = () => renderPath(label, parts.folder, "›", this.app.vault.getName());
+		showFolder();
+		const setFolder = (folder: string) => {
+			parts.folder = folder;
+			showFolder();
+			update();
+		};
+		folderBtn.addEventListener("click", () => new FolderPickerModal(this.app, parts.folder, setFolder).open());
+		this.addBrowse(setting, "folder", false, undefined, (paths) => {
+			if (paths[0] !== undefined) setFolder(paths[0]);
+		});
+
+		const nameRow = box.createDiv({ cls: "versobs-output-row" });
+		const input = nameRow.createEl("input", {
+			type: "text",
+			cls: "versobs-output-name",
+			attr: { "aria-label": t("form.outputName"), placeholder: fallback.name || t("form.outputName"), dir: "auto" },
+		});
+		input.value = parts.name;
+		input.addEventListener("input", () => {
+			parts.name = input.value;
+			update();
+		});
+		if (parts.ext) nameRow.createSpan({ text: parts.ext, cls: "versobs-output-ext" });
+	}
+
+	/** A "Browse…" button that opens the system file/folder dialog; vault paths are shortened to vault-relative. */
+	private addBrowse(
+		setting: Setting,
+		kind: "file" | "folder",
+		multiple: boolean,
+		accept: string[] | undefined,
+		onPick: (paths: string[]) => void,
+	): void {
+		setting.addExtraButton((button) =>
+			button
+				.setIcon("folder-open")
+				.setTooltip(t("form.browse"))
+				.onClick(async () => {
+					const paths = new VaultPaths(this.app);
+					let base: string | undefined;
+					try {
+						base = paths.base();
+					} catch {
+						base = undefined;
+					}
+					const picked = await pickPaths({ kind, multiple, accept, defaultPath: base, title: t("form.browse") });
+					if (!picked.length) return;
+					onPick(picked.map((abs) => (base ? (paths.toVault(abs) ?? abs) : abs)));
+				}),
+		);
 	}
 
 	private renderMultiChoice(setting: Setting, prop: ParamSchema, options: string[], key: string): void {
@@ -182,7 +279,7 @@ export class SchemaFormModal extends Modal {
 			listEl.empty();
 			for (const [index, item] of items.entries()) {
 				const row = listEl.createDiv({ cls: "versobs-path-item" });
-				row.createSpan({ text: item || "/" });
+				renderPath(row.createSpan(), item);
 				const remove = row.createEl("button", { text: "×", attr: { "aria-label": t("common.remove") } });
 				remove.addEventListener("click", () => {
 					items.splice(index, 1);
@@ -197,8 +294,10 @@ export class SchemaFormModal extends Modal {
 			this.values[key] = [...items];
 			render();
 		};
+		this.addBrowse(setting, kind, true, prop["x-accept"], (paths) => paths.forEach(add));
 		setting.addText((text) => {
 			text.setPlaceholder(t(kind === "folder" ? "form.addFolder" : "form.addFile"));
+			text.inputEl.dir = "auto";
 			new PathSuggest(this.app, text.inputEl, kind, prop["x-accept"], add);
 			const commit = (): boolean => {
 				const value = text.getValue().trim();

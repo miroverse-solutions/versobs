@@ -26,6 +26,20 @@ export function outputName(key: MessageKey, vars: Record<string, string>): strin
 	return t(key, vars);
 }
 
+/** Entry for a multi-selection (files-menu): shown when at least two of the selected files are accepted. */
+export function addFilesMenuItem(
+	menu: Menu,
+	files: TAbstractFile[],
+	accept: (f: TAbstractFile | null) => boolean,
+	title: (count: number) => string,
+	icon: string,
+	run: (files: TFile[]) => void,
+): void {
+	const matching = files.filter((f): f is TFile => f instanceof TFile && accept(f));
+	if (matching.length < 2) return;
+	addMenuItem(menu, title(matching.length), icon, () => run(matching));
+}
+
 /** "Command for the active file" with a check callback. */
 export function activeFileCommand(
 	core: Versobs,
