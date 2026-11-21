@@ -41,9 +41,10 @@ async function transcribeMany(ctx: ModuleContext, inputs: string[]): Promise<voi
 		hidden: ["output"],
 		values: { timestamped: ctx.get<boolean>("timestamped") },
 		title: (input) => t("transcribe.title", { name: core.inputName(input) }),
-		perInput: (input, _values, index) => ({
+		perInput: (input, _values, index, folder) => ({
 			output: core.outputFor(input, (stem) =>
 				stem ? outputName("tpl.transcript", { stem }) + ".md" : `${t("tpl.transcriptUrl")} ${stamp} ${index + 1}.md`,
+				folder,
 			),
 		}),
 		after: async (result, input, single) => {

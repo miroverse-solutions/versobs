@@ -53,8 +53,8 @@ async function translateMany(ctx: ModuleContext, inputs: string[]): Promise<void
 		formTitle: t("translate.cmdBatch"),
 		hidden: ["output"],
 		title: (input) => t("translate.title", { name: core.inputName(input) }),
-		perInput: (input) => ({
-			output: core.outputFor(input, (stem) => outputName("tpl.translation", { stem: stem ?? "" }) + ".md"),
+		perInput: (input, _values, _index, folder) => ({
+			output: core.outputFor(input, (stem) => outputName("tpl.translation", { stem: stem ?? "" }) + ".md", folder),
 		}),
 		after: (result, input, single) => afterTranslate(ctx, result, core.sourceFile(input), single ? undefined : false),
 	});

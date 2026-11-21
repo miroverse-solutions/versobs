@@ -105,6 +105,9 @@ const fa: Record<keyof typeof en, string> = {
 	"form.newFolder": "پوشه‌ی جدید: {name}",
 	"form.outputFolder": "پوشه",
 	"form.outputName": "نام فایل",
+	"form.batchFolder": "پوشه‌ی خروجی",
+	"form.batchFolderDesc": "محل ذخیره‌ی خروجی همه‌ی فایل‌ها. پیش‌فرض: کنار هر فایل، یا پوشه‌ی خروجی در تنظیمات.",
+	"form.defaultFolder": "پیش‌فرض (طبق تنظیمات)",
 
 	// batches
 	"batch.intro": "هر فایل یا لینک به‌صورت یک کار جداگانه اجرا می‌شود. کارها به ترتیب و به تعداد تنظیم «کارهای هم‌زمان» اجرا می‌شوند.",

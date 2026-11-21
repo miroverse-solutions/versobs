@@ -35,8 +35,8 @@ async function summarizeMany(ctx: ModuleContext, inputs: string[]): Promise<void
 		formTitle: t("summarize.cmdBatch"),
 		hidden: ["output"],
 		title: (input) => t("summarize.title", { name: core.inputName(input) }),
-		perInput: (input) => ({
-			output: core.outputFor(input, (stem) => outputName("tpl.summary", { stem: stem ?? "" }) + ".md"),
+		perInput: (input, _values, _index, folder) => ({
+			output: core.outputFor(input, (stem) => outputName("tpl.summary", { stem: stem ?? "" }) + ".md", folder),
 		}),
 		after: async (result, input, single) => {
 			await core.finish(result, { source: core.sourceFile(input), open: single ? undefined : false });

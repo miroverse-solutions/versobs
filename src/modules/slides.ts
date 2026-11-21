@@ -26,8 +26,8 @@ async function makeSlidesMany(ctx: ModuleContext, inputs: string[]): Promise<voi
 		formTitle: t("slides.cmdBatch"),
 		hidden: ["output_dir"],
 		title: (input) => t("slides.title", { name: core.inputName(input) }),
-		perInput: (input) => ({
-			output_dir: core.outputFor(input, (stem) => outputName("tpl.slides", { stem: stem ?? "" })),
+		perInput: (input, _values, _index, folder) => ({
+			output_dir: core.outputFor(input, (stem) => outputName("tpl.slides", { stem: stem ?? "" }), folder),
 		}),
 		after: async (result, _input, single) => {
 			if (result.outcome.status !== "success") return;

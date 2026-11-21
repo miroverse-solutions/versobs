@@ -7,7 +7,7 @@ import { pick, t } from "../i18n";
 import type { Job, JobManager } from "../jobs/job-manager";
 import type VersobsPlugin from "../main";
 import { notifyOutputs } from "../modules/_shared";
-import { openForm } from "../ui/schema-form-modal";
+import { OUTPUT_FOLDER_KEY, openForm } from "../ui/schema-form-modal";
 import { SetupModal } from "../ui/setup-modal";
 import type { BridgeService } from "./bridge-service";
 import { safeFileName, timestamp, VaultPaths } from "./paths";
@@ -38,8 +38,8 @@ export interface BatchOptions {
 	inputs: string[];
 	/** Job title for one input. */
 	title: (input: string) => string;
-	/** Values specific to one input (typically its output path). `index` is the input's position. */
-	perInput: (input: string, values: Record<string, unknown>, index: number) => Record<string, unknown>;
+	/** Values specific to one input (typically its output path). `index` is the input's position; `folder` is the output folder chosen in the form (null = default placement). */
+	perInput: (input: string, values: Record<string, unknown>, index: number, folder: string | null) => Record<string, unknown>;
 	/** Fields the caller fills per input; the form does not show them. */
 	hidden?: string[];
 	formTitle?: string;
@@ -164,9 +164,12 @@ export class Versobs {
 			hidden: options.hidden,
 			title: options.formTitle,
 			intro: options.intro ?? t("batch.intro"),
-			submitText: undefined,
+			outputFolder: (options.hidden?.length ?? 0) > 0,
 		});
 		if (!submitted) return;
+		const rawFolder = submitted[OUTPUT_FOLDER_KEY];
+		const folder = typeof rawFolder === "string" ? rawFolder : null;
+		delete submitted[OUTPUT_FOLDER_KEY];
 		values = { ...pickHidden(values, options.hidden), ...submitted };
 		await this.remember(spec, values);
 
@@ -181,7 +184,7 @@ export class Versobs {
 			const own: Record<string, unknown> = {
 				...values,
 				[input.key]: asList ? [item] : item,
-				...options.perInput(item, values, index),
+				...options.perInput(item, values, index, folder),
 			};
 			await this.ensureOutputFolders(spec, own);
 			const title = options.title(item);
@@ -219,9 +222,12 @@ export class Versobs {
 	 * Output path for an input: next to a vault file, or in the output folder for files outside the vault and links.
 	 * `name` builds the file name from the input's stem (null for a link).
 	 */
-	outputFor(input: string, name: (stem: string | null) => string): string {
+	outputFor(input: string, name: (stem: string | null) => string, folder: string | null = null): string {
 		const file = this.sourceFile(input);
-		return this.outputPath(file ?? this.app.workspace.getActiveFile(), name(file ? file.basename : inputStem(input)));
+		const fileName = name(file ? file.basename : inputStem(input));
+		if (folder === null) return this.outputPath(file ?? this.app.workspace.getActiveFile(), fileName);
+		if (VaultPaths.isAbsolute(folder)) return `${folder.replace(/[\\/]+$/, "")}/${safeFileName(fileName)}`;
+		return VaultPaths.join(folder, safeFileName(fileName));
 	}
 
 	/** A short name for an input in titles: the file name, or the link itself. */

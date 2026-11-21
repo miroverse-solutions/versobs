@@ -112,6 +112,9 @@ const en = {
 	"form.newFolder": "New folder: {name}",
 	"form.outputFolder": "Folder",
 	"form.outputName": "File name",
+	"form.batchFolder": "Output folder",
+	"form.batchFolderDesc": "Where the results of all files are saved. Default: next to each file, or the output folder from the settings.",
+	"form.defaultFolder": "Default (as in settings)",
 
 	// batches
 	"batch.intro": "Each file or link runs as a separate job. Jobs run in order, as many at a time as the concurrency setting allows.",

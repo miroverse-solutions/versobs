@@ -19,11 +19,18 @@ export interface FormOptions {
 	submitText?: string;
 	/** Extra text above the fields. */
 	intro?: string;
+	/** Batch forms: add one output-folder control for all items (the result's OUTPUT_FOLDER_KEY, when chosen). */
+	outputFolder?: boolean;
 }
+
+/** Key under which a batch form returns the chosen output folder (absent = use the settings' default placement). */
+export const OUTPUT_FOLDER_KEY = "__outputFolder";
 
 export class SchemaFormModal extends Modal {
 	private values: Record<string, unknown>;
 	private submitted = false;
+	/** Batch output folder: null = default placement from settings. */
+	private folder: string | null = null;
 	/** Commit text typed into list inputs but not yet added with Enter. */
 	private pending: Array<() => void> = [];
 
@@ -44,6 +51,8 @@ export class SchemaFormModal extends Modal {
 		const description = pick(options.spec.description);
 		if (options.intro) contentEl.createEl("p", { text: options.intro });
 		else if (description) contentEl.createEl("p", { text: description, cls: "versobs-muted" });
+
+		if (options.outputFolder) this.renderBatchFolder(contentEl);
 
 		const hidden = new Set(options.hidden ?? []);
 		const fields = fieldsOf(options.spec).filter((f) => !hidden.has(f.key));
@@ -76,6 +85,7 @@ export class SchemaFormModal extends Modal {
 			new Notice(t("form.missing", { fields: joinList(labels) }));
 			return;
 		}
+		if (this.folder !== null) values[OUTPUT_FOLDER_KEY] = this.folder;
 		this.submitted = true;
 		this.resolve(values);
 		this.close();
@@ -177,6 +187,36 @@ export class SchemaFormModal extends Modal {
 				set(value);
 			});
 		}
+	}
+
+	/** One output folder for every file of a batch; "default" follows the settings (next to the source, or the output folder). */
+	private renderBatchFolder(container: HTMLElement): void {
+		const setting = new Setting(container).setName(t("form.batchFolder")).setDesc(t("form.batchFolderDesc"));
+		const folderBtn = setting.controlEl.createEl("button", { cls: "versobs-folder-btn" });
+		setIcon(folderBtn.createSpan(), "folder");
+		const label = folderBtn.createSpan();
+		const show = () => {
+			if (this.folder === null) {
+				label.empty();
+				label.removeClass("versobs-path");
+				label.setText(t("form.defaultFolder"));
+			} else renderPath(label, this.folder, "›", this.app.vault.getName());
+		};
+		show();
+		const choose = (folder: string | null) => {
+			this.folder = folder;
+			show();
+		};
+		folderBtn.addEventListener("click", () => new FolderPickerModal(this.app, this.folder ?? "", choose).open());
+		this.addBrowse(setting, "folder", false, undefined, (paths) => {
+			if (paths[0] !== undefined) choose(paths[0]);
+		});
+		setting.addExtraButton((b) =>
+			b
+				.setIcon("rotate-ccw")
+				.setTooltip(t("form.defaultFolder"))
+				.onClick(() => choose(null)),
+		);
 	}
 
 	/**
