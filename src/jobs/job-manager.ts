@@ -191,6 +191,19 @@ export class JobManager extends Events {
 		for (const job of this.jobs) this.release(job);
 	}
 
+	/** Take one finished job off the list. */
+	remove(job: Job): void {
+		if (isActive(job) || !this.jobs.includes(job)) return;
+		this.release(job);
+		this.jobs = this.jobs.filter((j) => j !== job);
+		this.trigger("change", null);
+	}
+
+	/** 1-based place of a queued job in the line to start (0 when it is not waiting). */
+	queuePosition(job: Job): number {
+		return this.queue.indexOf(job) + 1;
+	}
+
 	clearFinished(): void {
 		for (const job of this.jobs) if (!isActive(job)) this.release(job);
 		this.jobs = this.jobs.filter(isActive);

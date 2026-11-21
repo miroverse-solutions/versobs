@@ -161,14 +161,49 @@
 }
 
 /* jobs panel */
-.versobs-jobs-header {
+.versobs-jobs {
 	display: flex;
-	align-items: center;
-	justify-content: space-between;
+	flex-direction: column;
+	height: 100%;
+	padding: 0;
+	overflow: hidden;
 }
 
-.versobs-jobs-header h4 {
+.versobs-jobs-header {
+	flex: none;
+	padding: var(--size-4-1) var(--size-4-3) var(--size-4-2);
+}
+
+.versobs-jobs-title-row {
+	display: flex;
+	align-items: center;
+	gap: var(--size-4-2);
+}
+
+.versobs-jobs-title-row h4 {
+	flex: 1;
 	margin: var(--size-4-2) 0;
+}
+
+.versobs-status-dot {
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: var(--text-faint);
+	flex: none;
+}
+
+.versobs-status-dot.is-ready {
+	background: var(--color-green);
+}
+
+.versobs-status-dot.is-warning {
+	background: var(--color-orange);
+}
+
+.versobs-jobs-summary {
+	color: var(--text-muted);
+	font-size: var(--font-ui-smaller);
 }
 
 .versobs-jobs-actions {
@@ -176,9 +211,167 @@
 	gap: var(--size-2-2);
 }
 
+.versobs-jobs-list {
+	flex: 1 1 auto;
+	min-height: 0;
+	overflow-y: auto;
+	padding: 0 var(--size-4-3);
+}
+
+.versobs-jobs-section {
+	color: var(--text-muted);
+	font-size: var(--font-ui-smaller);
+	font-weight: var(--font-semibold);
+	margin: var(--size-4-2) 0 var(--size-2-2);
+}
+
 .versobs-empty {
 	color: var(--text-muted);
-	padding: var(--size-4-4) 0;
+	padding: var(--size-4-8) var(--size-4-4);
+	text-align: center;
+}
+
+.versobs-empty-icon {
+	display: flex;
+	justify-content: center;
+	margin-bottom: var(--size-4-2);
+	color: var(--text-faint);
+}
+
+.versobs-job-toggle {
+	margin-inline-start: calc(var(--size-2-1) * -1);
+}
+
+.versobs-job-details {
+	margin-top: var(--size-2-3);
+}
+
+.versobs-job-meta {
+	color: var(--text-faint);
+	font-size: var(--font-ui-smaller);
+}
+
+.versobs-job-detail-actions {
+	display: flex;
+	gap: var(--size-4-2);
+	margin-top: var(--size-2-3);
+}
+
+.versobs-job-output {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--size-2-2);
+}
+
+.versobs-job-output-icon {
+	display: inline-flex;
+}
+
+.versobs-job-output-icon svg {
+	width: var(--icon-xs);
+	height: var(--icon-xs);
+}
+
+/* "New job" launcher at the bottom of the jobs panel */
+.versobs-launcher {
+	flex: none;
+	display: flex;
+	flex-direction: column;
+	max-height: 50%;
+	border-top: 1px solid var(--background-modifier-border);
+	background: var(--background-secondary);
+}
+
+.versobs-launcher-head {
+	display: flex;
+	align-items: center;
+	justify-content: flex-start;
+	gap: var(--size-4-2);
+	width: 100%;
+	height: auto;
+	padding: var(--size-4-2) var(--size-4-3);
+	font-weight: var(--font-semibold);
+	text-align: start;
+}
+
+.versobs-launcher-chevron,
+.versobs-launcher-plus {
+	display: inline-flex;
+	color: var(--text-muted);
+}
+
+.versobs-launcher-body {
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+	padding: 0 var(--size-4-3) var(--size-4-3);
+}
+
+.versobs-launcher-body.is-hidden {
+	display: none;
+}
+
+.versobs-launcher-search {
+	flex: none;
+	margin-bottom: var(--size-2-3);
+}
+
+.versobs-launcher-list {
+	overflow-y: auto;
+	min-height: 0;
+}
+
+.versobs-launcher-group {
+	color: var(--text-faint);
+	font-size: var(--font-ui-smaller);
+	margin: var(--size-4-2) 0 var(--size-2-1);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.versobs-launcher-row {
+	display: flex;
+	align-items: center;
+	gap: var(--size-4-2);
+	padding: var(--size-2-3) var(--size-4-2);
+	border-radius: var(--radius-s);
+	cursor: pointer;
+	font-size: var(--font-ui-small);
+}
+
+.versobs-launcher-row:hover,
+.versobs-launcher-row.is-selected {
+	background: var(--background-modifier-hover);
+}
+
+.versobs-launcher-row.is-selected {
+	outline: 1px solid var(--interactive-accent);
+}
+
+.versobs-launcher-icon {
+	display: inline-flex;
+	color: var(--text-muted);
+	flex: none;
+}
+
+.versobs-launcher-name {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.versobs-launcher-empty,
+.versobs-launcher-warning {
+	color: var(--text-muted);
+	font-size: var(--font-ui-smaller);
+	padding: var(--size-4-2);
+}
+
+.versobs-launcher-warning {
+	color: var(--text-warning, var(--color-orange));
 }
 
 .versobs-job {

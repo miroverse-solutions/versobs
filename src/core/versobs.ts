@@ -10,6 +10,7 @@ import { notifyOutputs } from "../modules/_shared";
 import { OUTPUT_FOLDER_KEY, openForm } from "../ui/schema-form-modal";
 import { SetupModal } from "../ui/setup-modal";
 import type { BridgeService } from "./bridge-service";
+import { LauncherRegistry } from "./launchers";
 import { safeFileName, timestamp, VaultPaths } from "./paths";
 import type { VersobsSettings } from "./settings";
 
@@ -70,6 +71,7 @@ const NOT_REMEMBERED_WIDGETS = new Set(["file", "files", "folder", "output-file"
 
 export class Versobs {
 	readonly paths: VaultPaths;
+	readonly launchers = new LauncherRegistry();
 
 	constructor(
 		readonly app: App,

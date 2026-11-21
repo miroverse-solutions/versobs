@@ -95,7 +95,7 @@ export const researchModule: VersobsModule = {
 	description: "module.research.desc",
 	tools: ["research.outline", "research.full"],
 	load(ctx) {
-		ctx.addCommand({ id: "outline", name: t("research.cmdOutline"), icon: "graduation-cap", callback: () => void newOutline(ctx) });
+		ctx.addCommand({ id: "outline", name: t("research.cmdOutline"), icon: "graduation-cap", callback: () => void newOutline(ctx) }, "general");
 		ctx.addCommand({
 			id: "full",
 			name: t("research.cmdFull"),
@@ -107,6 +107,6 @@ export const researchModule: VersobsModule = {
 				if (!checking) approveAndWrite(ctx, file);
 				return true;
 			},
-		});
+		}, "file");
 	},
 };

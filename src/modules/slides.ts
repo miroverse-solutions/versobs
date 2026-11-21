@@ -57,12 +57,12 @@ export const slidesModule: VersobsModule = {
 			name: t("slides.cmdBatch"),
 			icon: "presentation",
 			callback: () => void makeSlidesMany(ctx, []),
-		});
+		}, "general");
 		ctx.addCommand({
 			id: "active-file",
 			name: t("slides.cmdFile"),
 			icon: "presentation",
 			checkCallback: activeFileCommand(ctx.core, isMarkdown, (file) => void makeSlides(ctx, file)),
-		});
+		}, "file");
 	},
 };

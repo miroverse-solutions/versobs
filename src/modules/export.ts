@@ -73,12 +73,12 @@ export const exportModule: VersobsModule = {
 			name: t("export.cmdBatch"),
 			icon: "file-output",
 			callback: () => void exportMany(ctx, []),
-		});
+		}, "general");
 		ctx.addCommand({
 			id: "active-file",
 			name: t("export.cmdFile"),
 			icon: "file-output",
 			checkCallback: activeFileCommand(ctx.core, isMarkdown, (file) => void exportItem(ctx, file)),
-		});
+		}, "file");
 	},
 };

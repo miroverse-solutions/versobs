@@ -115,13 +115,13 @@ export const translateModule: VersobsModule = {
 			name: t("translate.cmdFile"),
 			icon: "languages",
 			checkCallback: activeFileCommand(ctx.core, isNote, (file) => void translateFile(ctx, file)),
-		});
+		}, "file");
 		ctx.addCommand({
 			id: "batch",
 			name: t("translate.cmdBatch"),
 			icon: "languages",
 			callback: () => void translateMany(ctx, []),
-		});
+		}, "general");
 		ctx.addCommand({
 			id: "selection",
 			name: t("translate.cmdSelection"),

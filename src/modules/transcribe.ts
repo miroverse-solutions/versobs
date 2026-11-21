@@ -87,12 +87,12 @@ export const transcribeModule: VersobsModule = {
 			name: t("transcribe.cmdFile"),
 			icon: "mic",
 			checkCallback: activeFileCommand(ctx.core, isMedia, (file) => void transcribe(ctx, file)),
-		});
+		}, "file");
 		ctx.addCommand({
 			id: "link",
 			name: t("transcribe.cmdUrl"),
 			icon: "link",
 			callback: () => void transcribeMany(ctx, []),
-		});
+		}, "general");
 	},
 };

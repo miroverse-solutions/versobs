@@ -97,7 +97,7 @@ export const toolRunnerModule: VersobsModule = {
 	name: "module.runner",
 	description: "module.runner.desc",
 	load(ctx) {
-		ctx.addCommand({ id: "pick", name: t("runner.cmd"), icon: "wand-2", callback: () => void openPicker(ctx) });
+		ctx.addCommand({ id: "pick", name: t("runner.cmd"), icon: "wand-2", callback: () => void openPicker(ctx) }, "tools");
 		registerCli(ctx);
 	},
 };

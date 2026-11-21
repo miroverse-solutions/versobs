@@ -11,6 +11,7 @@ import {
 	type TAbstractFile,
 } from "obsidian";
 import type { MessageKey } from "../i18n";
+import type { LauncherScope } from "./launchers";
 import type { Versobs } from "./versobs";
 
 export interface VersobsModule {
@@ -29,6 +30,7 @@ export interface VersobsModule {
 
 export class ModuleContext extends Component {
 	private commandIds: string[] = [];
+	private launcherIds: string[] = [];
 
 	constructor(
 		public readonly core: Versobs,
@@ -41,10 +43,24 @@ export class ModuleContext extends Component {
 		return this.core.app;
 	}
 
-	addCommand(command: Command): void {
+	/** Register a command; with `launcher` it also appears in the jobs panel's "New job" list. */
+	addCommand(command: Command, launcher?: LauncherScope): void {
 		const id = `${this.module.id}-${command.id}`;
 		this.core.plugin.addCommand({ ...command, id });
 		this.commandIds.push(id);
+		if (!launcher || (!command.callback && !command.checkCallback)) return;
+		this.core.launchers.add({
+			id,
+			name: command.name,
+			icon: command.icon ?? "wand-2",
+			scope: launcher,
+			available: () => (command.checkCallback ? !!command.checkCallback(true) : true),
+			run: () => {
+				if (command.checkCallback) command.checkCallback(false);
+				else command.callback?.();
+			},
+		});
+		this.launcherIds.push(id);
 	}
 
 	onFileMenu(callback: (menu: Menu, file: TAbstractFile, source: string) => void): void {
@@ -78,5 +94,7 @@ export class ModuleContext extends Component {
 	override onunload(): void {
 		for (const id of this.commandIds) this.core.plugin.removeCommand(id);
 		this.commandIds = [];
+		for (const id of this.launcherIds) this.core.launchers.remove(id);
+		this.launcherIds = [];
 	}
 }

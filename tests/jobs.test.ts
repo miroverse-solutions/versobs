@@ -17,6 +17,7 @@ vi.mock("obsidian", () => {
 import type { RunHandle, RunOutcome } from "../src/bridge/client";
 import type { ToolSpec } from "../src/bridge/protocol";
 import type { BridgeService } from "../src/core/bridge-service";
+import { groupLaunchers, type Launcher } from "../src/core/launchers";
 import { JobManager } from "../src/jobs/job-manager";
 import { parseJobs, serializeJob } from "../src/jobs/job-store";
 
@@ -105,6 +106,21 @@ describe("JobManager retry", () => {
 		expect(jobs.jobs).toHaveLength(0);
 	});
 
+	it("removes one finished job but never an active one", async () => {
+		const { bridge, runs } = fakeBridge();
+		const jobs = new JobManager(bridge, () => 1, async () => null);
+		const a = jobs.submit({ tool: "x", title: "A", params: {} });
+		const b = jobs.submit({ tool: "x", title: "B", params: {} });
+		expect(jobs.queuePosition(a.job)).toBe(0);
+		expect(jobs.queuePosition(b.job)).toBe(1);
+		jobs.remove(b.job);
+		expect(jobs.jobs).toHaveLength(2);
+		runs[0]!.finish(outcome("success"));
+		await tick();
+		jobs.remove(a.job);
+		expect(jobs.jobs).toEqual([b.job]);
+	});
+
 	it("dispose marks running and queued jobs interrupted", async () => {
 		const { bridge, runs } = fakeBridge();
 		const jobs = new JobManager(bridge, () => 1, async () => null);
@@ -158,5 +174,34 @@ describe("job store", () => {
 	it("ignores a broken file", () => {
 		expect(parseJobs("{not json")).toEqual([]);
 		expect(parseJobs(JSON.stringify({ jobs: [{ nope: 1 }] }))).toEqual([]);
+	});
+});
+
+describe("launcher groups", () => {
+	const make = (id: string, name: string, scope: Launcher["scope"], available = true): Launcher => ({
+		id,
+		name,
+		icon: "x",
+		scope,
+		available: () => available,
+		run: () => undefined,
+	});
+	const list = [
+		make("a", "Transcribe the current file", "file"),
+		make("b", "Summarize the current file", "file", false),
+		make("c", "Summarize several files…", "general"),
+		make("d", "Run a Versline tool…", "tools"),
+	];
+
+	it("lists file tasks only when they apply, then general tasks, then the tool picker", () => {
+		const g = groupLaunchers(list, "");
+		expect(g.forFile.map((l) => l.id)).toEqual(["a"]);
+		expect(g.general.map((l) => l.id)).toEqual(["c"]);
+		expect(g.tools.map((l) => l.id)).toEqual(["d"]);
+	});
+
+	it("filters by every word, ignoring case", () => {
+		expect(groupLaunchers(list, "SUMMARIZE files").general.map((l) => l.id)).toEqual(["c"]);
+		expect(groupLaunchers(list, "zzz").forFile).toHaveLength(0);
 	});
 });

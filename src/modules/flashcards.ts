@@ -58,6 +58,6 @@ export const flashcardsModule: VersobsModule = {
 			name: t("flashcards.cmdFile"),
 			icon: "layers",
 			checkCallback: activeFileCommand(ctx.core, isDocument, (file) => void makeQuestions(ctx, file)),
-		});
+		}, "file");
 	},
 };

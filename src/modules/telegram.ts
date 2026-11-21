@@ -173,8 +173,8 @@ export const telegramModule: VersobsModule = {
 		},
 	],
 	load(ctx) {
-		ctx.addCommand({ id: "archive", name: t("telegram.cmdArchive"), icon: "send", callback: () => void archive(ctx) });
-		ctx.addCommand({ id: "taqrir", name: t("telegram.cmdTaqrir"), icon: "messages-square", callback: () => void taqrir(ctx) });
+		ctx.addCommand({ id: "archive", name: t("telegram.cmdArchive"), icon: "send", callback: () => void archive(ctx) }, "general");
+		ctx.addCommand({ id: "taqrir", name: t("telegram.cmdTaqrir"), icon: "messages-square", callback: () => void taqrir(ctx) }, "general");
 		ctx.addCommand({ id: "chats", name: t("telegram.cmdChats"), icon: "contact", callback: () => void browseChats(ctx) });
 		ctx.addCommand({ id: "login", name: t("telegram.cmdLogin"), icon: "log-in", callback: () => void login(ctx) });
 		ctx.onFileMenu((menu, file) => {

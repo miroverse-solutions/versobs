@@ -34,6 +34,6 @@ export const organizeModule: VersobsModule = {
 			name: t("organize.cmdVault"),
 			icon: "copy",
 			callback: () => void report(ctx, ctx.app.vault.getRoot()),
-		});
+		}, "general");
 	},
 };

@@ -56,6 +56,6 @@ export const qualcodeModule: VersobsModule = {
 			name: t("qualcode.cmdFile"),
 			icon: "tags",
 			checkCallback: activeFileCommand(ctx.core, isNote, (file) => void code(ctx, file)),
-		});
+		}, "file");
 	},
 };

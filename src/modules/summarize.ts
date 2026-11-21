@@ -94,13 +94,13 @@ export const summarizeModule: VersobsModule = {
 			name: t("summarize.cmdFile"),
 			icon: "list-collapse",
 			checkCallback: activeFileCommand(ctx.core, isDocument, (file) => void summarizeFile(ctx, file)),
-		});
+		}, "file");
 		ctx.addCommand({
 			id: "batch",
 			name: t("summarize.cmdBatch"),
 			icon: "list-collapse",
 			callback: () => void summarizeMany(ctx, []),
-		});
+		}, "general");
 		ctx.addCommand({
 			id: "selection",
 			name: t("summarize.cmdSelection"),

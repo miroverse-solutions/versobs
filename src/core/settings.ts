@@ -26,6 +26,8 @@ export interface VersobsSettings {
 	openResults: boolean;
 	notifyOnFinish: boolean;
 	checkUpdates: boolean;
+	/** The "New job" section of the jobs panel is expanded. */
+	jobsLauncherOpen: boolean;
 
 	/** Use the model/key below for jobs from this vault instead of Versline's saved settings. */
 	vaultLlm: boolean;
@@ -58,6 +60,7 @@ export const DEFAULT_SETTINGS: VersobsSettings = {
 	openResults: true,
 	notifyOnFinish: true,
 	checkUpdates: true,
+	jobsLauncherOpen: true,
 	vaultLlm: false,
 	llmProvider: "",
 	llmModel: "",
