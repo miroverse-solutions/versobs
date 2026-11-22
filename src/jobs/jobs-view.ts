@@ -13,6 +13,7 @@ import {
 import { applyDirection, formatDuration, formatNumber, pick, t } from "../i18n";
 import type { Versobs } from "../core/versobs";
 import { addCost, canRetry, isActive, type Job, type JobStatus } from "./job-manager";
+import { resultWarnings, warningText } from "./warnings";
 import { LauncherPanel } from "./launcher-panel";
 
 export const JOBS_VIEW = "versobs-jobs";
@@ -225,6 +226,11 @@ export class JobsView extends ItemView {
 		}
 		if (job.status === "error" && job.outcome?.error) {
 			card.createDiv({ cls: "versobs-job-error", text: job.outcome.error.message });
+		}
+		if (job.status === "success") {
+			for (const warning of resultWarnings(job.outcome?.data)) {
+				card.createDiv({ cls: "versobs-job-warning", text: `⚠️ ${warningText(warning)}`, attr: { dir: "auto" } });
+			}
 		}
 		if (job.status === "interrupted") {
 			card.createDiv({ cls: "versobs-job-label", text: t("jobs.interrupted") });

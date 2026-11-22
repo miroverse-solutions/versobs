@@ -19,6 +19,7 @@ import {
 import { acceptToFilters } from "../src/ui/native-picker";
 import { getPath, migrateSettings, setPath } from "../src/core/settings";
 import { formatNumber, joinList, pick, resolveLanguage, setLanguage, t } from "../src/i18n";
+import { resultWarnings, warningText } from "../src/jobs/warnings";
 import en from "../src/i18n/locales/en";
 import fa from "../src/i18n/locales/fa";
 
@@ -204,5 +205,39 @@ describe("output path parts", () => {
 	});
 	it("gives an empty value for an empty name so the default applies", () => {
 		expect(joinOutput({ folder: "a", name: "  ", ext: ".md" })).toBe("");
+	});
+});
+
+describe("job warnings", () => {
+	const skipped = {
+		kind: "skipped_ranges",
+		input: "/vault/audio/talk.mp3",
+		output: "/vault/audio/talk.md",
+		message: "talk.mp3: from 15:00 to 24:00 was NOT transcribed",
+		ranges: [
+			{ start_label: "15:00", end_label: "24:00", models: ["gemini-main", "gpt-4o-audio"] },
+			{ start_label: "1:02:00", end_label: "1:05:00", models: ["gemini-main"] },
+		],
+	};
+
+	it("keeps only well-formed warnings", () => {
+		expect(resultWarnings(undefined)).toEqual([]);
+		expect(resultWarnings({ warnings: "x" })).toEqual([]);
+		expect(resultWarnings({ warnings: [null, { message: 1 }, skipped] })).toEqual([skipped]);
+	});
+
+	it("names every skipped range and model", () => {
+		setLanguage("en");
+		const text = warningText(skipped);
+		expect(text).toContain("talk.mp3");
+		expect(text).toContain("15:00 to 24:00, 1:02:00 to 1:05:00");
+		expect(text).toContain("gemini-main / gpt-4o-audio");
+		setLanguage("fa");
+		expect(warningText(skipped)).toContain("15:00 تا 24:00");
+		setLanguage("en");
+	});
+
+	it("falls back to Versline's message for unknown kinds", () => {
+		expect(warningText({ kind: "other", message: "as sent" })).toBe("as sent");
 	});
 });

@@ -186,6 +186,14 @@ const en = {
 	"settings.saveFailed": "Could not save: {error}",
 	"settings.removeKeyTitle": "Remove the API key?",
 	"settings.removeKeyBody": "Versline will not be able to call the AI service until you add a key again.",
+	"settings.fallback": "Fallback model for transcription (Versline settings)",
+	"settings.fallback.about": "When is it used?",
+	"settings.fallback.aboutDesc":
+		"When the main model refuses a chunk for content-policy reasons (for example Gemini's content filter), only that chunk goes to this model; the next chunk goes back to the main model. If this model refuses it too, the chunk is skipped, the rest is transcribed, and the missing minutes are reported at the end.",
+	"settings.fallback.modelDesc": "Leave empty to turn the fallback off.",
+	"settings.fallback.sameProvider": "Same as the main provider",
+	"settings.fallback.keyDesc": "Needed when the fallback uses a different provider than the main model.",
+	"settings.fallback.removeKeyBody": "The fallback model will use no key of its own until you add one again.",
 	"settings.vault": "This vault",
 	"settings.vaultLlm": "Use a different AI setup in this vault",
 	"settings.vaultLlmDesc": "Override Versline's provider, model and key for jobs started from this vault.",
@@ -254,6 +262,9 @@ const en = {
 	"transcribe.embedDesc": "Put ![[audio file]] at the top of the transcript note.",
 	"transcribe.timestamped": "Timestamps by default",
 	"transcribe.timestampedDesc": "Also produce time-aligned segments.",
+	"transcribe.skippedTitle": "Part of the audio was not transcribed",
+	"transcribe.skippedRange": "{start} to {end}",
+	"transcribe.skippedBody": "{name}: from {ranges} was not transcribed because the content policy of {models} blocked it. The gap is marked with ⚠️ in the note.",
 
 	// summarize
 	"summarize.menu": "Summarize with Versline",

@@ -21,6 +21,10 @@ const KEY = {
 	proxy: "VERSLINE_LLM_PROXY",
 	apiKey: "VERSLINE_LLM_API_KEY",
 	telegramProxy: "VERSLINE_TELEGRAM_PROXY",
+	fallbackProvider: "VERSLINE_TRANSCRIPTION_FALLBACK_PROVIDER",
+	fallbackModel: "VERSLINE_TRANSCRIPTION_FALLBACK_MODEL",
+	fallbackApiKey: "VERSLINE_TRANSCRIPTION_FALLBACK_API_KEY",
+	fallbackEndpoint: "VERSLINE_TRANSCRIPTION_FALLBACK_API_ENDPOINT",
 };
 const FALLBACK_PROVIDERS = ["Google", "OpenAI", "OpenRouter", "AvalAI", "OpenAICompatible"];
 
@@ -104,6 +108,10 @@ export class VersobsSettingTab extends PluginSettingTab {
 		const providerOptions = Object.fromEntries(providers.map((p) => [p, p]));
 		const modelPlaceholder = (provider: string | undefined) =>
 			(provider && bridge.config?.default_models?.[provider]) || "gemini-2.0-flash";
+		const versline = (key: string) => this.getControlValue(VERSLINE_PREFIX + key) as string;
+		// The fallback provider when set, otherwise the main one.
+		const fallbackProvider = () => versline(KEY.fallbackProvider) || versline(KEY.provider);
+		const fallbackOtherProvider = () => !!versline(KEY.fallbackProvider) && versline(KEY.fallbackProvider) !== versline(KEY.provider);
 
 		const items: SettingDefinitionItem[] = [
 			{
@@ -152,6 +160,45 @@ export class VersobsSettingTab extends PluginSettingTab {
 						name: t("settings.proxy"),
 						desc: t("settings.proxyDesc"),
 						control: { type: "text", key: VERSLINE_PREFIX + KEY.proxy, placeholder: "socks5://127.0.0.1:10808" },
+					},
+				],
+			},
+			{
+				type: "group",
+				heading: t("settings.fallback"),
+				// Older Versline releases do not accept these keys.
+				visible: () => ready() && !!bridge.config?.writable?.includes(KEY.fallbackModel),
+				items: [
+					{ name: t("settings.fallback.about"), desc: t("settings.fallback.aboutDesc") },
+					{
+						name: t("settings.model"),
+						desc: t("settings.fallback.modelDesc"),
+						control: {
+							type: "text",
+							key: VERSLINE_PREFIX + KEY.fallbackModel,
+							placeholder: modelPlaceholder(fallbackProvider()),
+						},
+					},
+					{
+						name: t("settings.provider"),
+						control: {
+							type: "dropdown",
+							key: VERSLINE_PREFIX + KEY.fallbackProvider,
+							options: { "": t("settings.fallback.sameProvider"), ...providerOptions },
+						},
+					},
+					{
+						name: t("settings.apiKey"),
+						desc: bridge.config?.secrets_set.includes(KEY.fallbackApiKey)
+							? t("settings.apiKeySaved", { masked: bridge.config.values[KEY.fallbackApiKey] ?? "" })
+							: t("settings.fallback.keyDesc"),
+						visible: () => fallbackOtherProvider() || !!bridge.config?.secrets_set.includes(KEY.fallbackApiKey),
+						render: (setting) => this.renderApiKey(setting, KEY.fallbackApiKey),
+					},
+					{
+						name: t("settings.endpoint"),
+						visible: () => fallbackProvider() === "OpenAICompatible",
+						control: { type: "text", key: VERSLINE_PREFIX + KEY.fallbackEndpoint, placeholder: "https://…/v1" },
 					},
 				],
 			},
@@ -316,7 +363,7 @@ export class VersobsSettingTab extends PluginSettingTab {
 		);
 	}
 
-	private renderApiKey(setting: Setting): void {
+	private renderApiKey(setting: Setting, key: string = KEY.apiKey): void {
 		let value = "";
 		setting.addText((text) => {
 			text.inputEl.type = "password";
@@ -329,7 +376,7 @@ export class VersobsSettingTab extends PluginSettingTab {
 				.onClick(async () => {
 					if (!value) return;
 					try {
-						await this.core.bridge.saveConfig({ [KEY.apiKey]: value });
+						await this.core.bridge.saveConfig({ [key]: value });
 						new Notice(t("settings.saved"));
 						this.update();
 					} catch (err) {
@@ -337,7 +384,7 @@ export class VersobsSettingTab extends PluginSettingTab {
 					}
 				}),
 		);
-		if (this.core.bridge.config?.secrets_set.includes(KEY.apiKey)) {
+		if (this.core.bridge.config?.secrets_set.includes(key)) {
 			setting.addExtraButton((b) =>
 				b
 					.setIcon("trash-2")
@@ -345,13 +392,13 @@ export class VersobsSettingTab extends PluginSettingTab {
 					.onClick(() => {
 						new ConfirmationModal(this.app)
 							.setTitle(t("settings.removeKeyTitle"))
-							.setContent(t("settings.removeKeyBody"))
+							.setContent(t(key === KEY.apiKey ? "settings.removeKeyBody" : "settings.fallback.removeKeyBody"))
 							.addButton((btn) =>
 								btn
 									.setButtonText(t("common.remove"))
 									.setDestructive()
 									.onClick(async () => {
-										await this.core.bridge.saveConfig({ [KEY.apiKey]: null });
+										await this.core.bridge.saveConfig({ [key]: null });
 										this.update();
 									}),
 							)

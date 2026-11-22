@@ -1,9 +1,11 @@
 // Transcribe audio/video files in the vault (or links) into notes.
-import type { TFile } from "obsidian";
+import { Notice, type TFile } from "obsidian";
+import type { RunResult } from "../core/versobs";
 import { timestamp } from "../core/paths";
 import type { ModuleContext, VersobsModule } from "../core/module";
 import { t } from "../i18n";
-import { activeFileCommand, addFilesMenuItem, addMenuItem, afterFrontmatter, isMedia, outputName } from "./_shared";
+import { resultWarnings, warningText } from "../jobs/warnings";
+import { activeFileCommand, addFilesMenuItem, addMenuItem, afterFrontmatter, callout, isMedia, outputName } from "./_shared";
 
 async function transcribe(ctx: ModuleContext, file: TFile): Promise<void> {
 	const core = ctx.core;
@@ -16,6 +18,26 @@ async function transcribe(ctx: ModuleContext, file: TFile): Promise<void> {
 	});
 	const notes = await core.finish(result, { source: file });
 	await embedMedia(ctx, file, notes);
+	await reportSkipped(ctx, result, notes);
+}
+
+/** Parts of the audio every model blocked: a lasting notice, and a warning callout at the top of the note. */
+async function reportSkipped(ctx: ModuleContext, result: RunResult | null, notes: TFile[]): Promise<void> {
+	if (!result || result.outcome.status !== "success") return;
+	const warnings = resultWarnings(result.outcome.data);
+	if (!warnings.length) return;
+	const texts = warnings.map(warningText);
+	new Notice(`⚠️ ${t("transcribe.skippedTitle")}\n\n${texts.join("\n\n")}`, 0);
+	const mdNotes = notes.filter((n) => n.extension === "md");
+	for (const [i, warning] of warnings.entries()) {
+		const target = warning.output ? ctx.core.paths.toVault(warning.output) : null;
+		const note = mdNotes.find((n) => n.path === target) ?? (mdNotes.length === 1 ? mdNotes[0] : undefined);
+		if (!note) continue;
+		const text = texts[i] ?? warning.message;
+		await ctx.app.vault.process(note, (data) =>
+			data.includes(text) ? data : afterFrontmatter(data, callout("warning", t("transcribe.skippedTitle"), text) + "\n"),
+		);
+	}
 }
 
 /** Put ![[media]] at the top of the transcript note when the setting is on. */
@@ -51,6 +73,7 @@ async function transcribeMany(ctx: ModuleContext, inputs: string[]): Promise<voi
 			const file = core.sourceFile(input);
 			const notes = await core.finish(result, { source: file, open: single ? undefined : false });
 			if (file) await embedMedia(ctx, file, notes);
+			await reportSkipped(ctx, result, notes);
 		},
 	});
 }

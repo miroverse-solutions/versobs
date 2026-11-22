@@ -446,6 +446,13 @@
 	white-space: pre-wrap;
 }
 
+.versobs-job-warning {
+	color: var(--text-warning);
+	font-size: var(--font-ui-smaller);
+	margin-top: var(--size-2-2);
+	white-space: pre-wrap;
+}
+
 .versobs-job-outputs {
 	display: flex;
 	flex-wrap: wrap;
