@@ -25,7 +25,12 @@ const KEY = {
 	fallbackModel: "VERSLINE_TRANSCRIPTION_FALLBACK_MODEL",
 	fallbackApiKey: "VERSLINE_TRANSCRIPTION_FALLBACK_API_KEY",
 	fallbackEndpoint: "VERSLINE_TRANSCRIPTION_FALLBACK_API_ENDPOINT",
+	fallbackProxy: "VERSLINE_TRANSCRIPTION_FALLBACK_PROXY",
+	fallbackOwn: "VERSLINE_TRANSCRIPTION_FALLBACK_OWN_SETTINGS",
+	fallbackExtraBody: "VERSLINE_TRANSCRIPTION_FALLBACK_EXTRA_BODY",
 };
+/** Versline settings stored as the text "true" (the key is removed when off); the UI sees a boolean. */
+const VERSLINE_BOOLEANS = new Set([KEY.fallbackOwn]);
 const FALLBACK_PROVIDERS = ["Google", "OpenAI", "OpenRouter", "AvalAI", "OpenAICompatible"];
 
 export class VersobsSettingTab extends PluginSettingTab {
@@ -46,7 +51,8 @@ export class VersobsSettingTab extends PluginSettingTab {
 	override getControlValue(key: string): unknown {
 		if (key.startsWith(VERSLINE_PREFIX)) {
 			const name = key.slice(VERSLINE_PREFIX.length);
-			return this.pendingVersline[name] ?? this.core.bridge.config?.values[name] ?? "";
+			const value = this.pendingVersline[name] ?? this.core.bridge.config?.values[name] ?? "";
+			return VERSLINE_BOOLEANS.has(name) ? value === "true" : value;
 		}
 		if (key.startsWith("modules.")) {
 			const module = this.plugin.host.modules.find((m) => m.id === key.slice("modules.".length));
@@ -57,8 +63,11 @@ export class VersobsSettingTab extends PluginSettingTab {
 
 	override async setControlValue(key: string, value: unknown): Promise<void> {
 		if (key.startsWith(VERSLINE_PREFIX)) {
-			this.pendingVersline[key.slice(VERSLINE_PREFIX.length)] = (value as string) || null;
+			const name = key.slice(VERSLINE_PREFIX.length);
+			this.pendingVersline[name] = VERSLINE_BOOLEANS.has(name) ? (value === true ? "true" : null) : (value as string) || null;
 			this.flushVersline();
+			// Toggling a boolean shows or hides other fields.
+			if (VERSLINE_BOOLEANS.has(name)) this.update();
 			return;
 		}
 		if (key.startsWith("modules.")) {
@@ -111,6 +120,7 @@ export class VersobsSettingTab extends PluginSettingTab {
 		const versline = (key: string) => this.getControlValue(VERSLINE_PREFIX + key) as string;
 		// The fallback provider when set, otherwise the main one.
 		const fallbackProvider = () => versline(KEY.fallbackProvider) || versline(KEY.provider);
+		const fallbackOwn = () => this.getControlValue(VERSLINE_PREFIX + KEY.fallbackOwn) === true;
 		const fallbackOtherProvider = () => !!versline(KEY.fallbackProvider) && versline(KEY.fallbackProvider) !== versline(KEY.provider);
 
 		const items: SettingDefinitionItem[] = [
@@ -188,17 +198,43 @@ export class VersobsSettingTab extends PluginSettingTab {
 						},
 					},
 					{
+						name: t("settings.fallback.own"),
+						desc: t("settings.fallback.ownDesc"),
+						// Older Versline releases do not accept these keys.
+						visible: () => !!bridge.config?.writable?.includes(KEY.fallbackOwn),
+						control: { type: "toggle", key: VERSLINE_PREFIX + KEY.fallbackOwn },
+					},
+					{
 						name: t("settings.apiKey"),
 						desc: bridge.config?.secrets_set.includes(KEY.fallbackApiKey)
 							? t("settings.apiKeySaved", { masked: bridge.config.values[KEY.fallbackApiKey] ?? "" })
-							: t("settings.fallback.keyDesc"),
-						visible: () => fallbackOtherProvider() || !!bridge.config?.secrets_set.includes(KEY.fallbackApiKey),
+							: fallbackOwn()
+								? t("settings.fallback.inheritDesc")
+								: t("settings.fallback.keyDesc"),
+						visible: () => fallbackOtherProvider() || fallbackOwn() || !!bridge.config?.secrets_set.includes(KEY.fallbackApiKey),
 						render: (setting) => this.renderApiKey(setting, KEY.fallbackApiKey),
 					},
 					{
 						name: t("settings.endpoint"),
-						visible: () => fallbackProvider() === "OpenAICompatible",
+						desc: fallbackOwn() ? t("settings.fallback.inheritDesc") : undefined,
+						visible: () => fallbackProvider() === "OpenAICompatible" || fallbackOwn(),
 						control: { type: "text", key: VERSLINE_PREFIX + KEY.fallbackEndpoint, placeholder: "https://…/v1" },
+					},
+					{
+						name: t("settings.proxy"),
+						desc: t("settings.fallback.inheritDesc"),
+						visible: fallbackOwn,
+						control: { type: "text", key: VERSLINE_PREFIX + KEY.fallbackProxy, placeholder: "socks5://127.0.0.1:10808" },
+					},
+					{
+						name: t("settings.fallback.extraBody"),
+						desc: t("settings.fallback.extraBodyDesc"),
+						visible: fallbackOwn,
+						control: {
+							type: "text",
+							key: VERSLINE_PREFIX + KEY.fallbackExtraBody,
+							placeholder: '{"reasoning": {"max_tokens": 500}}',
+						},
 					},
 				],
 			},
