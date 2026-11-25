@@ -8,6 +8,7 @@ import { researchModule } from "./research";
 import { slidesModule } from "./slides";
 import { summarizeModule } from "./summarize";
 import { systemModule } from "./system";
+import { talkModule } from "./talk";
 import { telegramModule } from "./telegram";
 import { toolRunnerModule } from "./tool-runner";
 import { transcribeModule } from "./transcribe";
@@ -15,6 +16,7 @@ import { translateModule } from "./translate";
 
 export const MODULES: VersobsModule[] = [
 	transcribeModule,
+	talkModule,
 	summarizeModule,
 	translateModule,
 	exportModule,

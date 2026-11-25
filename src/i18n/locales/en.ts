@@ -26,6 +26,8 @@ const en = {
 	// modules
 	"module.transcribe": "Transcription",
 	"module.transcribe.desc": "Audio and video files (or links) to text notes.",
+	"module.talk": "Talk notes",
+	"module.talk.desc": "A taqrir of a recorded talk, or find a point, quotation or narration you remember in it.",
 	"module.summarize": "Summaries",
 	"module.summarize.desc": "Summarize notes, PDFs, Word and PowerPoint files, or the selected text.",
 	"module.translate": "Translation",
@@ -61,6 +63,9 @@ const en = {
 	"tpl.fullText": "{stem} - full text",
 	"tpl.reports": "{stem} - reports",
 	"tpl.taqrir": "Taqrir",
+	"tpl.talkTaqrir": "{stem} - taqrir",
+	"tpl.points": "{stem} - points",
+	"tpl.requests": "Requests",
 
 	// status
 	"status.ready": "Versline {version} is ready",
@@ -271,6 +276,18 @@ const en = {
 	"transcribe.skippedRange": "{start} to {end}",
 	"transcribe.skippedBody": "{name}: from {ranges} was not transcribed because the content policy of {models} blocked it. The gap is marked with ⚠️ in the note.",
 
+	// talk
+	"talk.menuFind": "Find a passage with Versline…",
+	"talk.menuTaqrir": "Taqrir with Versline",
+	"talk.cmdFind": "Find a passage in the current audio/video file…",
+	"talk.cmdTaqrir": "Taqrir of the current audio/video file",
+	"talk.findTitle": "Find in {name}",
+	"talk.taqrirTitle": "Taqrir of {name}",
+	"talk.findIntro": "Describe what you remember, in your own words: \"the narration from Imam Sadiq about patience\", \"the two points about raising children\". The file is transcribed only the first time; later searches in it are quick.",
+	"talk.found": "Found {count} passage(s).",
+	"talk.notFound": "Nothing matching was found in this file.",
+	"talk.embedDesc": "Put ![[audio file]] at the top of the taqrir and points notes.",
+
 	// summarize
 	"summarize.menu": "Summarize with Versline",
 	"summarize.menuSelection": "Summarize selection",
@@ -367,6 +384,17 @@ const en = {
 	"telegram.pickChat": "Pick a chat (channels are archived, other chats get a taqrir)",
 	"telegram.loadingChats": "Loading your chats…",
 	"telegram.chatsFailed": "Could not list chats: {error}",
+	"telegram.cmdRequests": "Telegram: answer my requests",
+	"telegram.requestsTitle": "Telegram requests",
+	"telegram.requestsIntro": "In the requests chat, reply to a talk (voice, audio or video) with a text or voice message: \"تقریر کن\" for a taqrir, or describe what you are looking for. This answers every new reply, in Telegram and in notes.",
+	"telegram.requestsChat": "Requests chat",
+	"telegram.requestsChatDesc": "Where you keep talks and reply to them: me (Saved Messages), or a private group or channel. Only your own replies count.",
+	"telegram.pickRequestsChat": "Choose…",
+	"telegram.pickRequestsChatPlaceholder": "Pick the chat where you leave requests",
+	"telegram.requestsDone": "Answered {count} request(s).",
+	"telegram.requestsNone": "No new requests.",
+	"telegram.requestsPending": "{count} new request(s) found (preview only).",
+	"telegram.requestsFailed": "{count} request(s) failed; they will be tried again next time.",
 
 	// organize
 	"organize.menu": "Folder statistics & duplicates",

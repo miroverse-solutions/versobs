@@ -22,7 +22,7 @@ async function transcribe(ctx: ModuleContext, file: TFile): Promise<void> {
 }
 
 /** Parts of the audio every model blocked: a lasting notice, and a warning callout at the top of the note. */
-async function reportSkipped(ctx: ModuleContext, result: RunResult | null, notes: TFile[]): Promise<void> {
+export async function reportSkipped(ctx: ModuleContext, result: RunResult | null, notes: TFile[]): Promise<void> {
 	if (!result || result.outcome.status !== "success") return;
 	const warnings = resultWarnings(result.outcome.data);
 	if (!warnings.length) return;
@@ -41,7 +41,7 @@ async function reportSkipped(ctx: ModuleContext, result: RunResult | null, notes
 }
 
 /** Put ![[media]] at the top of the transcript note when the setting is on. */
-async function embedMedia(ctx: ModuleContext, file: TFile, notes: TFile[]): Promise<void> {
+export async function embedMedia(ctx: ModuleContext, file: TFile, notes: TFile[]): Promise<void> {
 	if (!notes.length || !ctx.get<boolean>("embed")) return;
 	const note = notes.find((n) => n.extension === "md");
 	if (!note) return;
