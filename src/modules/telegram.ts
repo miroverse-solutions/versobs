@@ -1,7 +1,8 @@
 // Telegram: log in (phone + code asked in Obsidian), browse chats, archive a channel into the vault,
-// write a taqrir of a discussion, build the pack of an archive folder, and answer the requests the user
-// left as replies to talks in their requests chat (a taqrir, or passages found in the talk).
-import { existsSync } from "node:fs";
+// write a taqrir of a discussion, build the pack of an archive folder, turn a channel's documents (PDF, Word,
+// PowerPoint…) into Markdown notes, and answer the requests the user left as replies to talks in their requests
+// chat (a taqrir, or passages found in the talk).
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { FuzzySuggestModal, Notice, type Setting, type TextComponent, TFolder } from "obsidian";
 import { asText } from "../bridge/schema";
@@ -9,6 +10,7 @@ import type { ModuleContext, VersobsModule } from "../core/module";
 import { safeFileName, VaultPaths } from "../core/paths";
 import { applyDirection, t } from "../i18n";
 import { addMenuItem, notifyOutputs } from "./_shared";
+import { type ArchiveInfo, parseArchiveManifest } from "./telegram-archive";
 
 interface Chat {
 	id: number;
@@ -45,6 +47,69 @@ async function archive(ctx: ModuleContext, channel = ""): Promise<void> {
 	if (result?.outcome.status === "success") {
 		notifyOutputs(core, result, t("telegram.archiveDone"));
 		await core.finish(result, { stamp: false, open: false });
+	}
+}
+
+/** Whether the installed Versline can turn documents into Markdown (telegram.archive has the to_markdown option). */
+async function requireDocumentSupport(ctx: ModuleContext): Promise<boolean> {
+	const spec = await ctx.core.requireTool("telegram.archive");
+	if (!spec) return false;
+	if (!spec.params?.properties?.to_markdown) {
+		new Notice(t("telegram.documentsOutdated"), 10000);
+		return false;
+	}
+	return true;
+}
+
+/** Documents of a channel as Markdown notes: documents/<file>.md next to the posts, linked from each post note. */
+async function archiveDocuments(ctx: ModuleContext, channel = ""): Promise<void> {
+	if (!(await requireDocumentSupport(ctx))) return;
+	const core = ctx.core;
+	const base = ctx.get<string>("folder")?.trim() || "Telegram";
+	const result = await core.runTool({
+		tool: "telegram.archive",
+		title: t("telegram.documentsTitle", { name: channel || "…" }),
+		values: { channel, output: base, types: ["document"], to_markdown: true },
+		intro: t("telegram.documentsIntro", { folder: base }),
+		remember: false, // keep "documents only" out of the options remembered for normal archives
+		transform: (v) => ({ ...v, output: v.output === base ? chatFolder(ctx, asText(v.channel)) : v.output }),
+	});
+	if (result?.outcome.status === "success") {
+		notifyOutputs(core, result, t("telegram.documentsDone"));
+		await core.finish(result, { stamp: false, open: false });
+	}
+}
+
+/** Add documents as Markdown to an archive folder made earlier: the channel and date range come from its manifest. */
+async function documentsForFolder(ctx: ModuleContext, folder: TFolder, info: ArchiveInfo): Promise<void> {
+	if (!(await requireDocumentSupport(ctx))) return;
+	const core = ctx.core;
+	const result = await core.runTool({
+		tool: "telegram.archive",
+		title: t("telegram.documentsTitle", { name: info.title }),
+		values: {
+			channel: info.channel,
+			output: folder.path,
+			since: info.since,
+			until: info.until,
+			types: ["document"],
+			to_markdown: true,
+		},
+		intro: t("telegram.documentsFolderIntro", { folder: folder.path, from: info.since ?? "…", to: info.until ?? "…" }),
+		hidden: ["channel", "output", "since", "until"],
+		remember: false,
+	});
+	if (result?.outcome.status === "success") {
+		notifyOutputs(core, result, t("telegram.documentsDone"));
+		await core.finish(result, { stamp: false, open: false });
+	}
+}
+
+function readArchiveInfo(ctx: ModuleContext, folder: TFolder): ArchiveInfo | null {
+	try {
+		return parseArchiveManifest(readFileSync(join(ctx.core.paths.abs(folder.path), ARCHIVE_MARKER), "utf8"));
+	} catch {
+		return null;
 	}
 }
 
@@ -241,6 +306,7 @@ export const telegramModule: VersobsModule = {
 	load(ctx) {
 		ctx.addCommand({ id: "archive", name: t("telegram.cmdArchive"), icon: "send", callback: () => void archive(ctx) }, "general");
 		ctx.addCommand({ id: "taqrir", name: t("telegram.cmdTaqrir"), icon: "messages-square", callback: () => void taqrir(ctx) }, "general");
+		ctx.addCommand({ id: "documents", name: t("telegram.cmdDocuments"), icon: "file-text", callback: () => void archiveDocuments(ctx) }, "general");
 		ctx.addCommand({ id: "requests", name: t("telegram.cmdRequests"), icon: "inbox", callback: () => void answerRequests(ctx) }, "general");
 		ctx.addCommand({ id: "chats", name: t("telegram.cmdChats"), icon: "contact", callback: () => void browseChats(ctx) });
 		ctx.addCommand({ id: "login", name: t("telegram.cmdLogin"), icon: "log-in", callback: () => void login(ctx) });
@@ -248,6 +314,8 @@ export const telegramModule: VersobsModule = {
 			// The archive marker is a dot-file, which Obsidian does not index, so check the disk directly.
 			if (file instanceof TFolder && existsSync(join(ctx.core.paths.abs(file.path), ARCHIVE_MARKER))) {
 				addMenuItem(menu, t("telegram.menuPack"), "package", () => void pack(ctx, file));
+				const info = readArchiveInfo(ctx, file);
+				if (info) addMenuItem(menu, t("telegram.menuDocuments"), "file-text", () => void documentsForFolder(ctx, file, info));
 			}
 		});
 	},

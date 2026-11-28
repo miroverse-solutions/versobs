@@ -10,7 +10,7 @@
 - 🖨️ **خروجی Word و PDF** از یادداشت‌ها و پوشه‌ها (با پشتیبانی فارسی و راست‌به‌چپ)
 - ❓ **سؤال و فلش‌کارت** (Anki، CSV، HTML) · 🎞️ **اسلاید** از یادداشت
 - 🧩 **کدگذاری کیفی** مصاحبه‌ها · 🎓 **نگارش فصل یافته‌ها** در دو مرحله (طرح، سپس متن کامل)
-- 📣 **تلگرام:** بایگانی کانال در والت، تقریر مباحثات، ساخت بسته‌ی کامل
+- 📣 **تلگرام:** بایگانی کانال در والت، تبدیل اسناد (PDF، Word، PowerPoint…) به یادداشت مارک‌داون، تقریر مباحثات، ساخت بسته‌ی کامل
 - 🗂️ **گزارش پوشه:** آمار و فایل‌های تکراری
 - 🧰 **همه‌ی ابزارهای ورس‌لاین** از یک فهرست، با فرم خودکار؛ ابزارهای جدید ورس‌لاین بدون به‌روزرسانی افزونه هم ظاهر می‌شوند
 
@@ -53,9 +53,9 @@ versline obsidian install --vault ~/Notes    # یا یک والت مشخص
 
 # Versobs
 
-**Versline's AI tools inside Obsidian:** transcription, summaries, translation, Word/PDF export, questions and flashcards, slides, qualitative coding, research writing, Telegram archives and folder reports. A generic runner exposes every Versline tool, including ones added after this plugin was released. The interface is in English and Persian.
+**Versline's AI tools inside Obsidian:** transcription, summaries, translation, Word/PDF export, questions and flashcards, slides, qualitative coding, research writing, Telegram archives (with their PDF/Word/PowerPoint documents as Markdown notes) and folder reports. A generic runner exposes every Versline tool, including ones added after this plugin was released. The interface is in English and Persian.
 
-The work is done by [Versline](https://github.com/miroverse-solutions/versline) (1.6 or newer), which must be installed on the computer. The plugin is desktop-only.
+The work is done by [Versline](https://github.com/miroverse-solutions/versline) (1.11 or newer for converting Telegram documents; most features work with 1.6), which must be installed on the computer. The plugin is desktop-only.
 
 ## Install
 

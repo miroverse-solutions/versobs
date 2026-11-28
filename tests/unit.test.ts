@@ -19,6 +19,7 @@ import {
 import { acceptToFilters } from "../src/ui/native-picker";
 import { getPath, migrateSettings, setPath } from "../src/core/settings";
 import { formatNumber, joinList, pick, resolveLanguage, setLanguage, t } from "../src/i18n";
+import { parseArchiveManifest } from "../src/modules/telegram-archive";
 import { resultWarnings, warningText } from "../src/jobs/warnings";
 import en from "../src/i18n/locales/en";
 import fa from "../src/i18n/locales/fa";
@@ -239,5 +240,37 @@ describe("job warnings", () => {
 
 	it("falls back to Versline's message for unknown kinds", () => {
 		expect(warningText({ kind: "other", message: "as sent" })).toBe("as sent");
+	});
+});
+
+describe("telegram archive manifest", () => {
+	const manifest = (extra: object = {}) =>
+		JSON.stringify({
+			channel: { title: "کانال", username: "chan", id: 5 },
+			posts: {
+				"1": { status: "done", date: "2026-03-05T10:00:00+03:30", documents: [{ index: 0, note: "documents/a.md" }] },
+				"2": { status: "done", date: "2026-03-01T10:00:00+03:30" },
+				"3": { status: "failed", date: "2026-01-01T10:00:00+03:30" },
+				"4": { status: "done", merged_into: 2, date: "2026-02-01T10:00:00+03:30" },
+				"5": { status: "done", date: "2026-03-20T08:00:00+03:30", documents: [{ index: 0, error: "boom" }] },
+			},
+			...extra,
+		});
+
+	it("gives the channel, the date range of done posts and how many have documents", () => {
+		expect(parseArchiveManifest(manifest())).toEqual({
+			channel: "@chan",
+			title: "کانال",
+			since: "2026-03-01",
+			until: "2026-03-20",
+			converted: 1,
+			posts: 3,
+		});
+	});
+
+	it("falls back to the numeric id and rejects manifests without a channel", () => {
+		expect(parseArchiveManifest(manifest({ channel: { title: "T", username: null, id: -1001234 } }))?.channel).toBe("-1001234");
+		expect(parseArchiveManifest(manifest({ channel: {} }))).toBeNull();
+		expect(parseArchiveManifest("not json")).toBeNull();
 	});
 });
